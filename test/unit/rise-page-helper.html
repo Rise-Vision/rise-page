@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Page - Helper</title>
+
+  <script src="../../../webcomponentsjs/webcomponents-lite.min.js"></script>
+  <script src="../../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../rise-page.html">
+  <link rel="import" href="../../../rise-playlist/rise-playlist.html">
+  <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
+  <link rel="import" href="../../rise-demo.html">
+</head>
+<body>
+  <rise-page id="page" display-id="VGZUDDWYAZHY">
+
+    <rise-playlist id="sync-1">
+
+      <rise-playlist-item duration="5">
+        <rise-demo id="item-1"></rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-2"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="sync-2">
+
+      <rise-playlist-item duration="5">
+        <rise-demo id="item-3"></rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-4"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="unsync">
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-5"></rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="15">
+        <rise-demo id="item-6"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="partial-sync-1">
+
+      <rise-playlist-item duration="20">
+        <rise-demo id="item-7"></rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="5">
+        <rise-demo id="item-8"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="partial-sync-2">
+
+      <rise-playlist-item duration="20">
+        <rise-demo id="item-9"></rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-10"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="no-duration">
+
+      <rise-playlist-item>
+        <rise-demo id="item-11"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="empty">
+    </rise-playlist>
+
+  </rise-page>
+
+  <script>
+    var page = document.getElementById("page");
+      sync1 = document.getElementById("sync-1");
+
+    suiteSetup(function() {
+      var items = document.getElementsByTagName("rise-demo");
+
+      for (var i = 0; i < items.length; i++) {
+        items[i].onReady();
+      }
+
+      page._start();
+    });
+
+    suite("content sync", function() {
+      suite("_getPlaylistObj", function() {
+        var playlist = null;
+
+        suiteSetup(function() {
+          playlist = page._getPlaylistObj(sync1);
+        });
+
+        test("should set isReady property", function() {
+          assert.isFalse(playlist.isReady);
+        });
+
+        test("should set id property", function() {
+          assert.equal(playlist.id, sync1.id);
+        });
+
+        test("should set element property", function() {
+          assert.equal(playlist.element, sync1);
+        });
+
+        test("should return null if parameter not passed", function() {
+          assert.isNull(page._getPlaylistObj());
+        });
+      });
+
+      suite("_getNextIndex", function() {
+        test("should return an incremented index if at least one playlist item exists at a specified index", function() {
+          assert.equal(page._getNextIndex(0, page._groupedPlaylists[1].playlists), 1);
+        });
+
+        test("should return 0 if no playlists have an item at the given index", function() {
+          assert.equal(page._getNextIndex(1, page._groupedPlaylists[1].playlists), 0);
+        });
+      });
+
+      suite("_getGroupedPlaylists", function() {
+        var group;
+
+        suiteSetup(function() {
+          group = page._getGroupedPlaylists(0, page._allPlaylists);
+        });
+
+        test("should group all playlists by the duration of a playlist item at a specified index", function() {
+          assert.equal(group.length, 4);
+        });
+
+        test("should set the duration of a grouped playlist", function() {
+          assert.equal(group[1].duration, 5000);
+        });
+
+        test("should set the index of a grouped playlist", function() {
+          assert.equal(group[1].index, 0);
+        });
+
+        test("should set the playlists of a grouped playlist", function() {
+          assert.equal(group[1].playlists.length, 2);
+        });
+
+        test("should assign the correct playlist to the grouped playlist", function() {
+          assert.equal(group[1].playlists[0].id, "sync-1");
+        });
+
+        test("should return a grouped playlist with a property of '0' if a playlist " +
+          "item has no duration", function() {
+          assert.property(group[0].duration, "0");
+        });
+      });
+
+      suite("_cleanPlaylists", function() {
+        test("should return the same array of objects that are passed in as a parameter " +
+          "when each playlist has an item at a specified index", function() {
+          var playlists = page._cleanPlaylists(1, page._groupedPlaylists[1].playlists);
+
+          assert.deepEqual(playlists, page._groupedPlaylists[1].playlists);
+        });
+
+        test("should return an empty array when no playlist items exist at a specified index", function() {
+          var playlists = page._cleanPlaylists(2, page._groupedPlaylists[1].playlists);
+
+          assert.equal(playlists.length, 0);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

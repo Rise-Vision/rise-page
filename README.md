@@ -133,7 +133,7 @@ localhost:8080/components/rise-page/test/
 ```
 
 ### Deployment
-Once you are satisifed with your changes, deploy `rise-page.html`, as well as the `bower_components/iron-ajax`, `bower_components/polymer`, and `bower_components/webcomponentsjs` folders to your server. You can then use the web component by following the *Usage* instructions above.
+Once you are satisifed with your changes, deploy `rise-page.html`, as well as the `bower_components/iron-ajax`, `bower_components/polymer`, `bower_components/promise-polyfill`, and `bower_components/webcomponentsjs` folders to your server. You can then use the web component by following the *Usage* instructions above.
 
 ## Submitting Issues
 If you encounter problems or find defects we really want to hear about them. If you could take the time to add them as issues to this Repository it would be most appreciated. When reporting issues, please use the following format where applicable:

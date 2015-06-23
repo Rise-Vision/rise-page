@@ -1,9 +1,12 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 
+<script src="../underscore/underscore.js"></script>
+
 <dom-module id="rise-page">
   <template>
-    <content id="content"></content>
+    <content id="playlists" select="rise-playlist"></content>
+    <content id="items" select="rise-playlist-item"></content>
 
     <iron-ajax id="display"
       url={{_computeUrl(displayId)}}
@@ -15,7 +18,7 @@
 </dom-module>
 
 <script>
-  /* global Polymer */
+  /* global Polymer, _ */
   /*jshint newcap: false */
   Polymer({
     is: "rise-page",
@@ -31,19 +34,24 @@
     },
 
     /**
-     * The child components that have reported as being ready.
+     * The playlists.
      */
-    _components: [],
+    _allPlaylists: [],
 
     /**
-     * The total number of child components.
+     * An object containing playlists that are grouped by shared playlist item durations.
      */
-    _totalComponents: 0,
+    _groupedPlaylists: {},
 
     /**
-     * The number of child components that have reported as being ready.
+     * The total number of playlists.
      */
-    _numComponents: 0,
+    _totalPlaylists: 0,
+
+    /**
+     * The number of playlists that have reported as being ready.
+     */
+    _numPlaylists: 0,
 
     /**
      * Object containing information about the Display.
@@ -51,16 +59,11 @@
     _displayInfo: null,
 
     /**
-     * The delay (in ms) for the timeout that fires if not all components have reported ready.
-     */
-    _loadingDelay: 30000,
-
-    /**
      * The delay (in ms) for the timeout that fires to refresh the Display info.
      */
     _displayDelay: 900000,
 
-    /************************************** INITIALIZATION **************************************/
+    /*************************************** INITIALIZATION ***************************************/
 
     /**
      * Construct the base URL for the Display request.
@@ -73,122 +76,131 @@
      * An instance of the element was inserted into the DOM.
      */
     attached: function() {
-      var nodes = Polymer.dom(this.$.content).getDistributedNodes();
+      var playlists = Polymer.dom(this.$.playlists).getDistributedNodes(),
+        playlist = null;
 
-      for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].nodeType === 1) {
-          this._totalComponents++;
+      for (var i = 0; i < playlists.length; i++) {
+        if (playlists[i].nodeType === 1) {
+          playlist = this._getPlaylistObj(playlists[i]);
+
+          if (playlist !== null) {
+            this._allPlaylists.push(playlist);
+            this._totalPlaylists++;
+          }
         }
       }
 
-      this.addEventListener("rise-component-ready", this._handleReady);
-      this.addEventListener("rise-component-done", this._handleDone);
-
-      this.debounce("start", function() {
-        this._start();
-      }, this._loadingDelay);
+      if (this._totalPlaylists > 0) {
+        this.addEventListener("rise-playlist-ready", this._handleReady);
+      }
 
       this._getDisplayInfo();
     },
 
     /**
-     * Start playing the child components.
-     */
-    _start: function() {
-      this.removeEventListener("rise-component-ready", this._handleReady);
-      this.play();
-    },
-
-    /***************************************** PLAYBACK *****************************************/
-
-    /**
-     * Add the component to the components object if it does not already exist.
+     * * Store additional details about a playlist.
      */
     _handleReady: function(e) {
-      var component;
+      var playlist = _.findWhere(this._allPlaylists, { id: e.target.id });
 
-      for (var i = 0; i < this._components.length; i++) {
-        if (this._components[i].element === e.target) {
-          return;
-        }
+      // No playlist with this id was found or it has already reported ready.
+      if ((playlist === undefined) || playlist.isReady) {
+        return;
       }
 
-      component = {};
-      component.element = e.target;
+      playlist.isReady = true;
 
-      if (e.detail) {
-        if (e.detail.play) {
-          component.play = e.detail.play;
-        }
-
-        if (e.detail.pause) {
-          component.pause = e.detail.pause;
-        }
-
-        if (e.detail.stop) {
-          component.stop = e.detail.stop;
-        }
-
-        if (e.detail.done) {
-          component.done = e.detail.done;
-        }
+      if (e.detail && e.detail.items) {
+        playlist.items = e.detail.items;
       }
 
-      this._components.push(component);
-      this._numComponents++;
+      this._numPlaylists++;
 
-      if (this._numComponents === this._totalComponents) {
+      if (this._numPlaylists === this._totalPlaylists) {
         this._start();
-        this.cancelDebouncer("start");
+      }
+    },
+
+    /****************************************** PLAYBACK ******************************************/
+
+    /**
+     * Start all playlists.
+     */
+    _start: function() {
+      if (this._allPlaylists.length > 0) {
+        this._groupedPlaylists = this._getGroupedPlaylists(0, this._allPlaylists);
+        this.play(this._groupedPlaylists);
       }
     },
 
     /**
-     * Play a component again once it has finished.
+     * Start playing an individual playlist item for every playlist.
      */
-    _handleDone: function(e) {
-      for (var i = 0; i < this._components.length; i++) {
-        if (this._components[i].element === e.target) {
-          if (this._components[i].hasOwnProperty("play")) {
-            this._components[i].play.call(this._components[i].element);
+    play: function(groupedPlaylists) {
+      var index = 0,
+        duration = 0,
+        playlists = null,
+        playlist = null;
+
+      // Play all playlist items at the specified index.
+      for (var i = 0; i < groupedPlaylists.length; i++) {
+        playlist = groupedPlaylists[i];
+        index = playlist.index;
+        duration = playlist.duration;
+        playlists = playlist.playlists;
+
+        for (var j = 0; j < playlists.length; j++) {
+          if (playlists[j].element && playlists[j].isReady) {
+            playlists[j].element.play(index);
           }
-
-          break;
         }
+
+        this._startTimer(duration, playlist);
       }
     },
 
-    /**
-     * Send a command to all components.
+    /*
+     * Start a timer to interrupt the playback of playlists.
      */
-    _sendCommand: function(command) {
-      for (var i = 0; i < this._components.length; i++) {
-        if (this._components[i].hasOwnProperty(command)) {
-          this._components[i][command].call(this._components[i].element);
+    _startTimer: function(duration, groupedPlaylists) {
+      if (duration > 0) {
+        this.async(function() {
+          this._playNext(groupedPlaylists);
+        }, duration);
+      }
+      /* jshint ignore:start */
+      else {
+        // Playlist item is PUD. Playlist will take over playback from here.
+      }
+      /* jshint ignore:end */
+    },
+
+    /**
+     * Pause the playlist item and play the subsequent one.
+     */
+    _playNext: function(groupedPlaylists) {
+      var index = 0,
+        nextIndex = 0,
+        playlists = null;
+
+      // Pause the playlist item at the specified index.
+      index = groupedPlaylists.index;
+      playlists = groupedPlaylists.playlists;
+
+      for (var j = 0; j < playlists.length; j++) {
+        if (playlists[j].element) {
+          playlists[j].element.pause(index);
         }
       }
-    },
 
-    /**
-     * Play all components.
-     */
-    play: function() {
-      this._sendCommand("play");
-    },
+      nextIndex = this._getNextIndex(index, playlists);
 
-    /**
-     * Pause all components.
-     */
-    pause: function() {
-      this._sendCommand("pause");
-    },
+      // Remove playlists that don't have an item at this index.
+      playlists = this._cleanPlaylists(nextIndex, playlists);
 
-    /**
-     * Stop all components.
-     */
-    stop: function() {
-      this._sendCommand("stop");
-    },
+      // Check the duration of the next playlist items.
+      this.play(this._getGroupedPlaylists(nextIndex, playlists));
+     },
 
     /*************************************** DISPLAY INFO ***************************************/
 
@@ -207,7 +219,7 @@
         return this._displayInfo.companyId;
       }
       else {
-        return "";
+        return null;
       }
     },
 
@@ -241,6 +253,112 @@
       if (resp && resp.response && resp.response.item) {
         this._displayInfo = resp.response.item;
       }
+    },
+
+    /************************************** HELPER FUNCTIONS **************************************/
+
+    /**
+     * Return an object containing additional details about a playlist.
+     */
+    _getPlaylistObj: function(node) {
+      var playlist = {};
+
+      if (node) {
+        playlist.isReady = false;
+        playlist.id = node.id;
+        playlist.element = node;
+
+        return playlist;
+      }
+      else {
+        return null;
+      }
+    },
+
+    /**
+     * Get the index of the next playlist item to play.
+     */
+    _getNextIndex: function(currentIndex, playlists) {
+      var exists = false;
+
+      currentIndex++;
+
+      // Check all playlists to see if a playlist item exists at the given index.
+      for (var i = 0; i < playlists.length; i++) {
+        if (typeof playlists[i].items[currentIndex] !== "undefined") {
+          exists = true;
+
+          break;
+        }
+      }
+
+      // At least one playlist has an item at this index. Any others will be out of sync from
+      // this point forward.
+      if (exists) {
+        return currentIndex;
+      }
+      // No playlists have an item at this index; start from the beginning.
+      else {
+        return 0;
+      }
+    },
+
+    /**
+     * Return an array of objects that are grouped by playlist item duration.
+     */
+    _getGroupedPlaylists: function(index, playlists) {
+      var groupedPlaylists = [],
+        groupedPlaylist = null;
+
+      // Group playlists by the duration of the playlist item at a particular index.
+      playlists = _.chain(playlists)
+        // Only include those playlists that have items with valid durations.
+        .filter(function(playlist) {
+          if (playlist.items && playlist.items[index] &&
+            (playlist.items[index].duration != null)) { // jshint ignore:line
+            return true;
+          }
+          else {
+            return false;
+          }
+        })
+        .groupBy(function(playlist) {
+          return playlist.items[index].duration;
+        })
+        .value();
+
+      // Create the object to add to the array.
+      _.each(playlists, function(playlist, duration) {
+        groupedPlaylist = {};
+
+        groupedPlaylist.playlists = [];
+        groupedPlaylist.index = index;
+        groupedPlaylist.duration = duration;
+
+        for (var i = 0; i < playlist.length; i++) {
+          groupedPlaylist.playlists.push(playlist[i]);
+        }
+
+        groupedPlaylists.push(groupedPlaylist);
+      });
+
+      return groupedPlaylists;
+    },
+
+    /**
+     * Return only those playlists that have a playlist item at a given index.
+     */
+    _cleanPlaylists: function(index, playlists) {
+      var newPlaylists = [];
+
+      // Check all playlists to see if a playlist item exists at the given index.
+      for (var i = 0; i < playlists.length; i++) {
+        if (typeof playlists[i].items[index] !== "undefined") {
+          newPlaylists.push(playlists[i]);
+        }
+      }
+
+      return newPlaylists;
     }
   });
 </script>
