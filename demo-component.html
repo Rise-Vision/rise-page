@@ -1,14 +1,22 @@
 <link rel="import" href="../polymer/polymer.html">
 
-<dom-module name="rise-demo">
+<dom-module id="demo-component">
+  <template>
+    <img src="{{src}}">
+  </template>
 </dom-module>
 
 <script>
   /* global Polymer */
   /*jshint newcap: false */
-   Polymer({
-    is: "rise-demo",
+  Polymer({
+    is: "demo-component",
 
+    properties: {
+      src: String
+    },
+
+    // Dispatch rise-component-ready to indicate that the component has initialized.
     onReady: function() {
       var readyEvent = new CustomEvent("rise-component-ready", {
         "detail": {
@@ -35,7 +43,7 @@
       this.dispatchEvent(new CustomEvent("rise-demo-stop", { "bubbles": true }));
     },
 
-    sendDone: function() {
+    done: function() {
       this.dispatchEvent(new CustomEvent("rise-component-done", { "bubbles": true }));
     }
   });

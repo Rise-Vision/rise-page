@@ -11,7 +11,7 @@
   <link rel="import" href="../../rise-page.html">
   <link rel="import" href="../../../rise-playlist/rise-playlist.html">
   <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
-  <link rel="import" href="../../rise-demo.html">
+  <link rel="import" href="../../demo-component.html">
 </head>
 <body>
   <rise-page id="page" display-id="VGZUDDWYAZHY">
@@ -19,11 +19,11 @@
     <rise-playlist id="sync-1">
 
       <rise-playlist-item duration="5">
-        <rise-demo id="item-1"></rise-demo>
+        <demo-component id="item-1"></demo-component>
       </rise-playlist-item>
 
       <rise-playlist-item duration="10">
-        <rise-demo id="item-2"></rise-demo>
+        <demo-component id="item-2"></demo-component>
       </rise-playlist-item>
 
     </rise-playlist>
@@ -31,11 +31,11 @@
     <rise-playlist id="sync-2">
 
       <rise-playlist-item duration="5">
-        <rise-demo id="item-3"></rise-demo>
+        <demo-component id="item-3"></demo-component>
       </rise-playlist-item>
 
       <rise-playlist-item duration="10">
-        <rise-demo id="item-4"></rise-demo>
+        <demo-component id="item-4"></demo-component>
       </rise-playlist-item>
 
     </rise-playlist>
@@ -43,11 +43,11 @@
     <rise-playlist id="unsync">
 
       <rise-playlist-item duration="10">
-        <rise-demo id="item-5"></rise-demo>
+        <demo-component id="item-5"></demo-component>
       </rise-playlist-item>
 
       <rise-playlist-item duration="15">
-        <rise-demo id="item-6"></rise-demo>
+        <demo-component id="item-6"></demo-component>
       </rise-playlist-item>
 
     </rise-playlist>
@@ -55,11 +55,11 @@
     <rise-playlist id="partial-sync-1">
 
       <rise-playlist-item duration="20">
-        <rise-demo id="item-7"></rise-demo>
+        <demo-component id="item-7"></demo-component>
       </rise-playlist-item>
 
       <rise-playlist-item duration="5">
-        <rise-demo id="item-8"></rise-demo>
+        <demo-component id="item-8"></demo-component>
       </rise-playlist-item>
 
     </rise-playlist>
@@ -67,11 +67,11 @@
     <rise-playlist id="partial-sync-2">
 
       <rise-playlist-item duration="20">
-        <rise-demo id="item-9"></rise-demo>
+        <demo-component id="item-9"></demo-component>
       </rise-playlist-item>
 
       <rise-playlist-item duration="10">
-        <rise-demo id="item-10"></rise-demo>
+        <demo-component id="item-10"></demo-component>
       </rise-playlist-item>
 
     </rise-playlist>
@@ -79,7 +79,7 @@
     <rise-playlist id="no-duration">
 
       <rise-playlist-item>
-        <rise-demo id="item-11"></rise-demo>
+        <demo-component id="item-11"></demo-component>
       </rise-playlist-item>
 
     </rise-playlist>
@@ -94,7 +94,7 @@
       sync1 = document.getElementById("sync-1");
 
     suiteSetup(function() {
-      var items = document.getElementsByTagName("rise-demo");
+      var items = document.getElementsByTagName("demo-component");
 
       for (var i = 0; i < items.length; i++) {
         items[i].onReady();
