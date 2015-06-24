@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Page - Init</title>
+
+  <script src="../../../webcomponentsjs/webcomponents-lite.min.js"></script>
+  <script src="../../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../../rise-playlist/rise-playlist.html">
+  <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
+  <link rel="import" href="../../rise-page.html">
+  <link rel="import" href="../../rise-demo.html">
+</head>
+<body>
+  <rise-page id="page" display-id="dummy-id">
+
+    <rise-playlist id="playlist-1">
+
+      <rise-playlist-item duration="5">
+        <rise-demo id="item-1">
+          <nested-element></nested-element>
+        </rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-2"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="playlist-2">
+
+      <rise-playlist-item duration="5">
+        <rise-demo id="item-3">
+          <nested-element></nested-element>
+        </rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-4"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    Ignore this text.
+  </rise-page>
+
+  <script>
+    suite("page", function() {
+      var page = document.querySelector("#page"),
+        playlist1 = document.querySelector("#playlist-1"),
+        item1 = document.querySelector("#item-1"),
+        item2 = document.querySelector("#item-2");
+
+      suite("_computeUrl", function() {
+        test("should return the correct URL for a given displayId", function() {
+          assert.equal(page._computeUrl("dummy-id"), "https://rvaserver2.appspot.com/_ah/api/content/v0/display?id=dummy-id");
+        });
+      });
+
+      suite("attached", function() {
+        test("should create an array of objects representing each rise-playlist element", function() {
+          assert.equal(page._allPlaylists.length, 2);
+        });
+
+        test("should set the total number of playlists", function() {
+          assert.equal(page._totalPlaylists, 2);
+        });
+      });
+
+      suite("_handleReady", function() {
+        suiteSetup(function() {
+          item1.onReady();
+          item2.onReady();
+        });
+
+        test("should set isReady", function() {
+          assert.isTrue(page._allPlaylists[0].isReady);
+        });
+
+        test("should set items", function() {
+          assert.equal(page._allPlaylists[0].items.length, 2);
+        });
+
+        test("should increment _numPlaylists", function() {
+          assert.equal(page._numPlaylists, 1);
+        });
+
+        test("should not increment the total number of ready playlists if the playlist has " +
+          "already reported ready", function() {
+          playlist1.dispatchEvent(new CustomEvent("rise-playlist-ready", { "bubbles": true }));
+
+          assert.equal(page._numPlaylists, 1);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

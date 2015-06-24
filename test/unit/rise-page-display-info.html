@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Page - Display Info</title>
+
+  <script src="../../../webcomponentsjs/webcomponents-lite.min.js"></script>
+  <script src="../../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../../rise-playlist/rise-playlist.html">
+  <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
+  <link rel="import" href="../../rise-page.html">
+  <link rel="import" href="../../rise-demo.html">
+</head>
+<body>
+  <rise-page id="page" display-id="dummy-id">
+
+    <rise-playlist id="playlist-1">
+
+      <rise-playlist-item>
+        <rise-demo id="item-1"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+  </rise-page>
+
+  <script>
+    suite("page", function() {
+      var xhr = null,
+        requests = null,
+        clock = null,
+        page = document.querySelector("#page"),
+        resp = {
+          "response": {
+            "item": {
+              "companyId": "abc123",
+              "displayAddress": {
+                "street": "PO Box 77240",
+                "unit": "RPO Courtney Park",
+                "city": "Mississauga",
+                "province": "ON",
+                "country": "CA",
+                "postalCode": "L5T2P4"
+              }
+            }
+          }
+        };
+
+      suiteSetup(function() {
+        xhr = sinon.useFakeXMLHttpRequest();
+
+        xhr.onCreate = function (xhr) {
+          requests.push(xhr);
+        };
+
+        clock = sinon.useFakeTimers();
+      });
+
+      suiteTeardown(function() {
+        xhr.restore();
+        clock.restore();
+      });
+
+      setup(function() {
+        requests = [];
+      });
+
+      suite("_handleResponse", function() {
+        test("should not set _displayInfo for an invalid response", function() {
+          page._handleResponse({}, {});
+
+          assert.isNull(page._displayInfo);
+        });
+
+        test("should set _displayInfo for a valid response", function() {
+          page._handleResponse({}, resp);
+
+          assert.deepEqual(page._displayInfo, resp.response.item);
+        });
+      });
+
+      suite("_getDisplayInfo", function() {
+        test("should call _getDisplayInfo after _displayDelay is reached", function() {
+          var spy = sinon.spy(page, "_getDisplayInfo");
+
+          page._getDisplayInfo();
+          clock.tick(page._displayDelay);
+
+          assert(spy.calledTwice);
+          page._getDisplayInfo.restore();
+        });
+      });
+
+      suite("getDisplayId", function() {
+        test("should return the Display ID", function() {
+          assert.equal(page.getDisplayId(), "dummy-id");
+        });
+
+        test("should return null if there is no Display ID", function() {
+          page.removeAttribute("display-id");
+
+          assert.isNull(page.getDisplayId());
+        });
+      });
+
+      suite("getCompanyId", function() {
+        test("should return the Company ID", function() {
+          assert.equal(page.getCompanyId(), "abc123");
+        });
+
+        test("should return null if there is no Company ID", function() {
+          delete page._displayInfo.companyId;
+
+          assert.isNull(page.getCompanyId());
+        });
+      });
+
+      suite("getDisplayAddress", function() {
+        test("should return the Display address", function() {
+          assert.equal(JSON.stringify(page.getDisplayAddress()),
+            JSON.stringify({ street: "PO Box 77240", unit: "RPO Courtney Park", city: "Mississauga", province: "ON", country: "CA", postalCode: "L5T2P4" }));
+        });
+
+        test("should return an empty object if there is no Display address", function() {
+          delete page._displayInfo.displayAddress;
+
+          assert.deepEqual(page.getDisplayAddress(), {});
+        });
+      });
+    });
+  </script>
+</body>
+</html>

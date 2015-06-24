@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Page - Playback</title>
+
+  <script src="../../../webcomponentsjs/webcomponents-lite.min.js"></script>
+  <script src="../../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../../rise-playlist/rise-playlist.html">
+  <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
+  <link rel="import" href="../../rise-page.html">
+  <link rel="import" href="../../rise-demo.html">
+</head>
+<body>
+  <rise-page id="page" display-id="dummy-id">
+
+    <rise-playlist id="playlist-1">
+
+      <rise-playlist-item duration="5">
+        <rise-demo id="item-1">
+          <nested-element></nested-element>
+        </rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-2"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="playlist-2">
+
+      <rise-playlist-item duration="5">
+        <rise-demo id="item-3"></rise-demo>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-4"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+     <rise-playlist id="playlist-3">
+
+      <rise-playlist-item duration="10">
+        <rise-demo id="item-5"></rise-demo>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    Ignore this text.
+  </rise-page>
+
+  <script>
+    suite("page", function() {
+      var firstPlaySpy = null,
+        secondPlaySpy = null,
+        pauseSpy = null,
+        page = document.querySelector("#page"),
+        playlist1 = document.querySelector("#playlist-1"),
+        playlist2 = document.querySelector("#playlist-2"),
+        item1 = document.querySelector("#item-1"),
+        item2 = document.querySelector("#item-2"),
+        item3 = document.querySelector("#item-3"),
+        item4 = document.querySelector("#item-4");
+
+      suiteSetup(function() {
+        var items = document.getElementsByTagName("rise-demo");
+
+        for (var i = 0; i < items.length; i++) {
+          items[i].onReady();
+        }
+      });
+
+      suite("_start", function() {
+        test("should create an array of playlists grouped by duration", function() {
+          page._start();
+
+          assert.equal(page._groupedPlaylists.length, 2);
+        });
+      });
+
+      suite("play", function() {
+        var grouped = null;
+
+        suiteSetup(function() {
+          grouped = page._groupedPlaylists;
+          firstPlaySpy = sinon.spy(grouped[0].playlists[0].items[0], "play");
+        });
+
+        suiteTeardown(function() {
+          grouped[0].playlists[0].items[0].play.restore();
+        });
+
+        test("should play the first playlist item", function() {
+          page.play(page._groupedPlaylists);
+
+          assert(firstPlaySpy.calledOnce);
+        });
+      });
+
+      suite("_playNext", function() {
+        var grouped = null;
+
+        suiteSetup(function() {
+          grouped = page._groupedPlaylists;
+          pauseSpy = sinon.spy(grouped[0].playlists[0].items[0], "pause");
+          secondPlaySpy = sinon.spy(grouped[0].playlists[0].items[1], "play");
+
+          page._playNext(page._groupedPlaylists[0]);
+        });
+
+        suiteTeardown(function() {
+          grouped[0].playlists[0].items[0].pause.restore();
+          grouped[0].playlists[0].items[1].play.restore();
+        });
+
+        test("should pause the currently playing playlist item", function() {
+          assert(pauseSpy.calledOnce);
+        });
+
+        test("should play the second playlist item", function() {
+          assert(secondPlaySpy.calledOnce);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
