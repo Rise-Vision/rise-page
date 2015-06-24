@@ -4,106 +4,85 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <title>rise-page Demo</title>
 
-  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-  <link rel="import" href="rise-page.html">
-  <link rel="import" href="rise-demo.html">
+  <script src="../webcomponentsjs/webcomponents-lite.min.js"></script>
 
+  <link rel="import" href="rise-page.html">
+  <link rel="import" href="demo-component.html">
+  <link rel="import" href="../rise-playlist/rise-playlist.html">
+  <link rel="import" href="../rise-playlist-item/rise-playlist-item.html">
+
+  <style>
+    rise-playlist {
+      display: block;
+    }
+
+    .fade-in {
+      opacity: 1;
+      transition: opacity 1s;
+    }
+
+    .fade-out {
+      opacity: 0;
+      transition: opacity 1s;
+    }
+
+    img {
+      max-width: 200px;
+    }
+
+    #messages {
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <!-- Replace "dummy-id" with a valid Display ID. -->
-  <rise-page id="page" display-id="dummy-id">
-    <rise-demo id="demo"></rise-demo>
+  <!-- Playback is synchronized since the corresponding playlist items in both playlists
+    have the same durations. -->
+  <rise-page id="page" display-id="VGZUDDWYAZHY">
+
+    <rise-playlist id="playlist-1" intro="fade-in" outro="fade-out">
+      <rise-playlist-item duration="3">
+        <demo-component id="apple" src="https://goo.gl/XBnh0j"></demo-component>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="5">
+        <demo-component id="duck" src="https://goo.gl/fyZFTU"></demo-component>
+      </rise-playlist-item>
+    </rise-playlist>
+
+    <rise-playlist id="playlist-2" intro="fade-in" outro="fade-out">
+      <rise-playlist-item duration="3">
+        <demo-component id="balloons" src="https://goo.gl/xyCpwu"></demo-component>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="5">
+        <demo-component id="moon" src="https://goo.gl/VyUVhj"></demo-component>
+      </rise-playlist-item>
+    </rise-playlist>
+
   </rise-page>
 
   <form>
-    <button id="ready" type="button">Ready</button>
-    <button id="play" type="button" disabled>Play</button>
-    <button id="pause" type="button" disabled>Pause</button>
-    <button id="stop" type="button" disabled>Stop</button>
-    <button id="done" type="button" disabled>Done</button>
-    <button id="displayId" type="button" disabled>Display ID</button>
-    <button id="companyId" type="button" disabled>Company ID</button>
-    <button id="displayAddress" type="button" disabled>Display Address</button>
+    <button id="displayId" type="button">Display ID</button>
+    <button id="companyId" type="button">Company ID</button>
+    <button id="displayAddress" type="button">Display Address</button>
   </form>
 
   <div id="messages"></div>
 
   <script>
     var page = document.getElementById("page"),
-      demo = document.getElementById("demo"),
       messages = document.getElementById("messages"),
-      readyBtn = document.getElementById("ready"),
-      playBtn = document.getElementById("play"),
-      pauseBtn = document.getElementById("pause"),
-      stopBtn = document.getElementById("stop"),
-      doneBtn = document.getElementById("done"),
       displayIdBtn = document.getElementById("displayId"),
       companyIdBtn = document.getElementById("companyId"),
       displayAddressBtn = document.getElementById("displayAddress");
 
-    function enable(elem) {
-      elem.removeAttribute("disabled");
-    }
-
-    function disable(elem) {
-      elem.setAttribute("disabled", "disabled");
-    }
-
     function ready() {
-      messages.innerHTML += "Sending Ready<br><br>";
-      demo.onReady();
+      var components = document.getElementsByTagName("demo-component");
 
-      enable(pauseBtn);
-      enable(stopBtn);
-      enable(doneBtn);
-      enable(displayIdBtn);
-      enable(companyIdBtn);
-      enable(displayAddressBtn);
-    }
-
-    function play() {
-      page.play();
-
-      disable(playBtn);
-      enable(pauseBtn);
-      enable(stopBtn);
-    }
-
-    function pause() {
-      page.pause();
-
-      enable(playBtn);
-      disable(pauseBtn);
-      disable(stopBtn);
-    }
-
-    function stop() {
-      page.stop();
-
-      enable(playBtn);
-      disable(pauseBtn);
-      disable(stopBtn);
-    }
-
-    function done() {
-      messages.innerHTML += "Sending Done<br><br>";
-      demo.sendDone();
-
-      disable(playBtn);
-      enable(pauseBtn);
-      enable(stopBtn);
-    }
-
-    function handlePlay() {
-      messages.innerHTML += "Playing<br><br>";
-    }
-
-    function handlePause() {
-      messages.innerHTML += "Paused<br><br>";
-    }
-
-    function handleStop() {
-      messages.innerHTML += "Stopped<br><br>";
+      for (var i = 0; i < components.length; i++) {
+        components[i].onReady();
+      }
     }
 
     function getDisplayId() {
@@ -127,22 +106,14 @@
         "City: " + (address.city ? address.city : "") + "<br>" +
         "Province: " + (address.province ? address.province : "") + "<br>" +
         "Postal Code: " + (address.postalCode ? address.postalCode : "") + "<br><br>";
-
     }
 
     function init() {
-      readyBtn.onclick = ready;
-      playBtn.onclick = play;
-      pauseBtn.onclick = pause;
-      stopBtn.onclick = stop;
-      doneBtn.onclick = done;
       displayIdBtn.onclick = getDisplayId;
       companyIdBtn.onclick = getCompanyId;
       displayAddressBtn.onclick = getDisplayAddress;
 
-      this.addEventListener("rise-demo-play", handlePlay);
-      this.addEventListener("rise-demo-pause", handlePause);
-      this.addEventListener("rise-demo-stop", handleStop);
+      ready();
     }
 
     init();
