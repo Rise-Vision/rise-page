@@ -1,17 +1,47 @@
 # Rise Page Web Component
 
 ## Introduction
-`rise-page` is a web component that controls the playback of its child components, telling them when to play, pause or stop. Additionally, it surfaces methods for returning details about the Display.
+`rise-page` is a web component that controls the playback of its child playlists. Playlist items that have the same duration and are located in the same position within a playlist as another playlist item within a separate playlist, will have their playback synchronized.
+
+Consider the following HTML snippet:
+```
+<rise-page id="page" display-id="dummy-id">
+  <rise-playlist id="playlist-1" intro="fade-in" outro="fade-out">
+    <rise-playlist-item duration="3">
+      <demo-component id="apple" src="https://url.to.apple.png"></demo-component>
+    </rise-playlist-item>
+    <rise-playlist-item duration="5">
+      <demo-component id="duck" src="https://url.to.duck.png"></demo-component>
+    </rise-playlist-item>
+  </rise-playlist>
+  <rise-playlist id="playlist-2" intro="fade-in" outro="fade-out">
+    <rise-playlist-item duration="3">
+      <demo-component id="balloons" src="https://url.to.balloons.png"></demo-component>
+    </rise-playlist-item>
+    <rise-playlist-item duration="5">
+      <demo-component id="moon" src="https://url.to.moon.png"></demo-component>
+    </rise-playlist-item>
+  </rise-playlist>
+</rise-page>
+```
+
+In the above example, `apple` and `balloons` both play for 3 seconds. After that, `duck` and `moon` play for 5 seconds. In this way, both playlists are synchronized such that they start and end at the exact same time.
+
+In addition, `rise-page` surfaces methods for returning details about the Display.
 
 `rise-page` works in conjunction with [Rise Vision](http://www.risevision.com), the [digital signage management application](http://rva.risevision.com/) that runs on [Google Cloud](https://cloud.google.com).
 
 At this time Chrome is the only browser that this project and Rise Vision supports.
 
 ## Usage
-To begin, you will need to install `rise-page` using Bower:
+To begin, you will need to install `rise-page`, `rise-playlist` and `rise-playlist-item` using Bower:
 ```
 bower install https://github.com/Rise-Vision/web-component-rise-page.git
+bower install https://github.com/Rise-Vision/web-component-rise-playlist.git
+bower install https://github.com/Rise-Vision/web-component-rise-playlist-item.git
 ```
+
+The above repositories, as well as their dependencies, are installed in the `bower_components` folder.
 
 Next, construct your HTML page. You should include `webcomponents-lite.min.js` before any code that touches the DOM, and load the web component using an HTML import. For example:
 ```
@@ -20,11 +50,17 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
   <head>
     <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
     <link rel="import" href="bower_components/web-component-rise-page/rise-page.html">
+    <link rel="import" href="bower_components/web-component-rise-playlist/rise-playlist.html">
+    <link rel="import" href="bower_components/web-component-rise-playlist-item/rise-playlist-item.html">
   </head>
   <body>
     <!-- Replace "dummy-id" with a valid Display ID. -->
     <rise-page id="page" display-id="dummy-id">
-      <!-- Child components go here. -->
+      <rise-playlist id="playlist-1">
+        <rise-playlist-item duration="5">
+          <!-- Content goes here. -->
+        </rise-playlist-item>
+      </rise-playlist>
     </rise-page>
   </body>
 </html>
@@ -37,44 +73,60 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
 
 *Note:* You can find the Display ID on the Displays page of the [Rise Vision platform](http://rva.risevision.com/).
 
-### Child Components
-Child components can themselves be web components. Regardless of the form that they take, they need to adhere to some rules in order for the page component to be able to control their playback.
+### Methods
+| Method              | Description                                                         |
+| ------------------- | ------------------------------------------------------------------- |
+| `play`              | Start playlist playback.                                            |
+| `getDisplayId`      | Get the Display ID.                                                 |
+| `getCompanyId`      | Get the Company ID of the Display.                                  |
+| `getDisplayAddress` | Get the Display address.                                            |
 
-#### rise-component-ready
-Once a component has finished initializing and loading, it should dispatch the `rise-component-ready` event, passing custom data that includes the functions that the page component should call to control its playback, if applicable, and whether or not it supports sending the `rise-component-done` event. For example:
+### Building Custom Content
+When building custom content for use with `rise-page`, there are a few conventions that must be followed.
+
+The first is that your content must dispatch the `rise-component-ready` event once the component has initialized and is ready for display. This event takes as a parameter an object of the following form:
 ```
-var readyEvent = new CustomEvent("rise-component-ready", {
+{
   "detail": {
     "play": playFunction,
     "pause": pauseFunction,
     "stop": stopFunction,
+    "done": true|false
+  }
+}
+```
+
+where `playFunction`, `pauseFunction` and `stopFunction` are references to the functions to call when the content component is played, paused or stopped, respectively. `done` is a boolean value that indicates whether or not the component supports play until done.
+
+The following code will dispatch this event:
+```
+var readyEvent = new CustomEvent("rise-component-ready", {
+  "detail": {
+    "play": this.play,
+    "pause": this.pause,
+    "stop": this.stop,
     "done": true
   },
   "bubbles": true
 });
 
-elem.dispatchEvent(readyEvent);
+this.dispatchEvent(readyEvent);
 ```
 
-#### rise-component-done
-When a component that supports the `rise-component-done` event has completed a single playback cycle, it should dispatch that event. For example:
+Additionally, if your content supports play until done, it must dispatch the `rise-component-done` event once a full playback cycle has completed. This event takes no parameters.
+
+The following code will dispatch this event:
 ```
 this.dispatchEvent(new CustomEvent("rise-component-done", { "bubbles": true }));
 ```
 
-A sample child component that is built as a web component can be seen [here](https://github.com/Rise-Vision/web-component-rise-page/blob/master/rise-demo.html). You will need to replace the `display-id` attribute of the `<rise-page>` element with a valid Display ID in order to return data.
-
-### Methods
-| Method              | Description                                                         |
-| ------------------- | ------------------------------------------------------------------- |
-| `getDisplayId`      | Returns the Display ID.                                             |
-| `getCompanyId`      | Returns the Company ID of the Display.                              |
-| `getDisplayAddress` | Returns the Display address.                                        |
+A sample child component that is built as a web component can be seen [here](https://github.com/Rise-Vision/web-component-rise-page/blob/master/demo-component.html). You will need to replace the `display-id` attribute of the `<rise-page>` element with a valid Display ID in order to return data.
 
 ## Built With
 - [Polymer](https://www.polymer-project.org/)
-- [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs)
 - [Polymer iron-ajax](https://elements.polymer-project.org/elements/iron-ajax)
+- [webcomponentsjs](https://github.com/webcomponents/webcomponentsjs)
+- [Underscore.js](http://underscorejs.org/)
 - [npm](https://www.npmjs.org)
 - [Bower](http://bower.io/)
 - [Gulp](http://gulpjs.com/)
