@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Page - Distribution</title>
+
+  <script src="../../../webcomponentsjs/webcomponents-lite.min.js"></script>
+  <script src="../../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../../rise-playlist/rise-playlist.html">
+  <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
+  <link rel="import" href="../../../rise-distribution/rise-distribution.html">
+  <link rel="import" href="../../rise-page.html">
+  <link rel="import" href="../../demo-component.html">
+</head>
+<body>
+  <rise-page id="page" display-id="dummy-id">
+
+    <rise-playlist id="match">
+
+      <rise-playlist-item>
+        <demo-component></demo-component>
+      </rise-playlist-item>
+
+      <rise-distribution distribution='[{"id":"dummy-id"}]'></rise-distribution>
+
+    </rise-playlist>
+
+    <rise-playlist id="no-match">
+
+      <rise-playlist-item>
+        <demo-component></demo-component>
+      </rise-playlist-item>
+
+      <rise-distribution distribution='[{"id":"abc123"}]'></rise-distribution>
+
+    </rise-playlist>
+
+    <rise-playlist id="no-distribution">
+
+      <rise-playlist-item>
+        <demo-component></demo-component>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+  </rise-page>
+
+  <script>
+    suite("distribution", function() {
+      var page = document.getElementById("page");
+
+      suiteSetup(function() {
+        var items = document.getElementsByTagName("demo-component");
+
+        for (var i = 0; i < items.length; i++) {
+          items[i].onReady();
+        }
+      });
+
+      suite("_canPlay", function() {
+        var playlist = null;
+
+        test("should return true if a playlist has a distribution matching the Display ID", function() {
+          playlist = page._getPlaylistObj(document.getElementById("match"));
+
+          assert.isTrue(page._canPlay(playlist));
+        });
+
+        test("should return false if a playlist does not have a distribution matching the Display ID", function() {
+          playlist = page._getPlaylistObj(document.getElementById("no-match"));
+
+          assert.isFalse(page._canPlay(playlist));
+        });
+
+        test("should return true if a playlist does not have a distribution", function() {
+          playlist = page._getPlaylistObj(document.getElementById("no-distribution"));
+
+          assert.isTrue(page._canPlay(playlist));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

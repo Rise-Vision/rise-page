@@ -5,7 +5,7 @@
 
 Consider the following HTML snippet:
 ```
-<rise-page id="page" display-id="dummy-id">
+<rise-page id="page" display-id="abc123">
   <rise-playlist id="playlist-1" intro="fade-in" outro="fade-out">
     <rise-playlist-item duration="3">
       <demo-component id="apple" src="https://url.to.apple.png"></demo-component>
@@ -27,6 +27,27 @@ Consider the following HTML snippet:
 
 In the above example, `apple` and `balloons` both play for 3 seconds. After that, `duck` and `moon` play for 5 seconds. In this way, both playlists are synchronized such that they start and end at the exact same time.
 
+### Distribution
+The [distribution component](https://github.com/Rise-Vision/web-component-rise-distribution) can be used to control whether or not a Playlist shows on a Display. If any of the values in its `distribution` attribute match the value of the page component's `display-id` attribute, the playlist will play. Otherwise, the playlist will be hidden from view and will not play.
+
+In the following example, `playlist-1` will play since it has a distribution that matches that of the page component, while `playlist-2` will be skipped as none of its distributions match.
+```
+<rise-page id="page" display-id="abc123">
+  <rise-playlist id="playlist-1" intro="fade-in" outro="fade-out">
+    <rise-playlist-item duration="3">
+      <demo-component id="apple" src="https://url.to.apple.png"></demo-component>
+    </rise-playlist-item>
+    <rise-distribution distribution='[{"id":"abc123"}]'></rise-distribution>
+  </rise-playlist>
+  <rise-playlist id="playlist-2" intro="fade-in" outro="fade-out">
+    <rise-playlist-item duration="5">
+      <demo-component id="duck" src="https://url.to.duck.png"></demo-component>
+    </rise-playlist-item>
+    <rise-distribution distribution='[{"id":"dummy-id"},{"id":"no-match"}]'></rise-distribution>
+  </rise-playlist>
+</rise-page>
+```
+
 In addition, `rise-page` surfaces methods for returning details about the Display.
 
 `rise-page` works in conjunction with [Rise Vision](http://www.risevision.com), the [digital signage management application](http://rva.risevision.com/) that runs on [Google Cloud](https://cloud.google.com).
@@ -34,11 +55,12 @@ In addition, `rise-page` surfaces methods for returning details about the Displa
 At this time Chrome is the only browser that this project and Rise Vision supports.
 
 ## Usage
-To begin, you will need to install `rise-page`, `rise-playlist` and `rise-playlist-item` using Bower:
+To begin, you will need to install the following components using Bower:
 ```
 bower install https://github.com/Rise-Vision/web-component-rise-page.git
 bower install https://github.com/Rise-Vision/web-component-rise-playlist.git
 bower install https://github.com/Rise-Vision/web-component-rise-playlist-item.git
+bower install https://github.com/Rise-Vision/web-component-rise-distribution.git
 ```
 
 The above repositories, as well as their dependencies, are installed in the `bower_components` folder.
@@ -52,14 +74,16 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
     <link rel="import" href="bower_components/web-component-rise-page/rise-page.html">
     <link rel="import" href="bower_components/web-component-rise-playlist/rise-playlist.html">
     <link rel="import" href="bower_components/web-component-rise-playlist-item/rise-playlist-item.html">
+    <link rel="import" href="bower_components/web-component-rise-distribution/rise-distribution.html">
   </head>
   <body>
-    <!-- Replace "dummy-id" with a valid Display ID. -->
-    <rise-page id="page" display-id="dummy-id">
+    <!-- Replace "abc123" with a valid Display ID. -->
+    <rise-page id="page" display-id="abc123">
       <rise-playlist id="playlist-1">
         <rise-playlist-item duration="5">
           <!-- Content goes here. -->
         </rise-playlist-item>
+        <rise-distribution distribution='[{"id":"abc123"}]'></rise-distribution>
       </rise-playlist>
     </rise-page>
   </body>
@@ -185,7 +209,17 @@ localhost:8080/components/rise-page/test/
 ```
 
 ### Deployment
-Once you are satisifed with your changes, deploy `rise-page.html`, as well as the `bower_components/iron-ajax`, `bower_components/polymer`, `bower_components/promise-polyfill`, and `bower_components/webcomponentsjs` folders to your server. You can then use the web component by following the *Usage* instructions above.
+Once you are satisifed with your changes, deploy `rise-page.html`, as well as the following folders to your server:
+* `bower_components/iron-ajax`
+* `bower_components/polymer`
+* `bower_components/promise-polyfill`
+* `bower_components/rise-distribution`
+* `bower_components/rise-page`
+* `bower_components/rise-playlist`
+* `bower_components/rise-playlist-item`
+* `bower_components/webcomponentsjs`
+
+You can then use the web component by following the *Usage* instructions above.
 
 ## Submitting Issues
 If you encounter problems or find defects we really want to hear about them. If you could take the time to add them as issues to this Repository it would be most appreciated. When reporting issues, please use the following format where applicable:
