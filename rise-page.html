@@ -6,7 +6,6 @@
 <dom-module id="rise-page">
   <template>
     <content id="playlists" select="rise-playlist"></content>
-    <content id="items" select="rise-playlist-item"></content>
 
     <iron-ajax id="display"
       url={{_computeUrl(displayId)}}
@@ -98,7 +97,7 @@
     },
 
     /**
-     * * Store additional details about a playlist.
+     * Store additional details about a playlist.
      */
     _handleReady: function(e) {
       var playlist = _.findWhere(this._allPlaylists, { id: e.target.id });
@@ -108,16 +107,71 @@
         return;
       }
 
-      playlist.isReady = true;
+      // Check the distribution to see if the playlist should play on this Display.
+      if (this._canPlay(playlist)) {
+        playlist.isReady = true;
 
-      if (e.detail && e.detail.items) {
-        playlist.items = e.detail.items;
+        if (e.detail && e.detail.items) {
+          playlist.items = e.detail.items;
+        }
+      }
+      // Hide and remove the playlist from the master array of playlists.
+      else {
+        playlist.element.style.display = "none";
+        this._allPlaylists = _.without(this._allPlaylists, playlist);
       }
 
       this._numPlaylists++;
 
       if (this._numPlaylists === this._totalPlaylists) {
         this._start();
+      }
+    },
+
+    /**************************************** DISTRIBUTION ****************************************/
+
+    /**
+     * Determine whether or not to play a playlist based on its distribution and the Display ID.
+     */
+    _canPlay: function(playlist) {
+      var nodes = null,
+        node = null,
+        distribution = null,
+        found = false;
+
+      // Find the rise-distribution element for the playlist.
+      if (playlist.element) {
+        nodes = playlist.element.childNodes;
+
+        for (var i = 0; i < nodes.length; i++) {
+          node = nodes[i];
+
+          if ((node.nodeType === 1) && (node.nodeName === "RISE-DISTRIBUTION")) {
+            found = true;
+
+            // Check if any of the distribution values match the Display ID.
+            try {
+              distribution = JSON.parse(node.getAttribute("distribution"));
+
+              for (var j = 0; j < distribution.length; j++) {
+                if (distribution[j].id === this.getDisplayId()) {
+                  return true;
+                }
+              }
+            }
+            catch (e) {
+              console.log(e);
+            }
+          }
+        }
+      }
+
+      // Play the playlist even if there is no rise-distribution element.
+      if (!found) {
+        return true;
+      }
+      else {
+        return false;
       }
     },
 
@@ -200,9 +254,9 @@
 
       // Check the duration of the next playlist items.
       this.play(this._getGroupedPlaylists(nextIndex, playlists));
-     },
+    },
 
-    /*************************************** DISPLAY INFO ***************************************/
+    /**************************************** DISPLAY INFO ****************************************/
 
     /**
      * Return the Display ID.

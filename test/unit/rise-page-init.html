@@ -10,6 +10,7 @@
 
   <link rel="import" href="../../../rise-playlist/rise-playlist.html">
   <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
+  <link rel="import" href="../../../rise-distribution/rise-distribution.html">
   <link rel="import" href="../../rise-page.html">
   <link rel="import" href="../../demo-component.html">
 </head>
@@ -44,15 +45,22 @@
 
     </rise-playlist>
 
+    <rise-playlist id="playlist-3">
+
+      <rise-playlist-item duration="5">
+        <demo-component id="item-5"></demo-component>
+      </rise-playlist-item>
+
+      <rise-distribution distribution='[{"id":"abc123"}]'></rise-distribution>
+
+    </rise-playlist>
+
     Ignore this text.
   </rise-page>
 
   <script>
     suite("page", function() {
-      var page = document.querySelector("#page"),
-        playlist1 = document.querySelector("#playlist-1"),
-        item1 = document.querySelector("#item-1"),
-        item2 = document.querySelector("#item-2");
+      var page = document.getElementById("page");
 
       suite("_computeUrl", function() {
         test("should return the correct URL for a given displayId", function() {
@@ -62,18 +70,18 @@
 
       suite("attached", function() {
         test("should create an array of objects representing each rise-playlist element", function() {
-          assert.equal(page._allPlaylists.length, 2);
+          assert.equal(page._allPlaylists.length, 3);
         });
 
         test("should set the total number of playlists", function() {
-          assert.equal(page._totalPlaylists, 2);
+          assert.equal(page._totalPlaylists, 3);
         });
       });
 
       suite("_handleReady", function() {
         suiteSetup(function() {
-          item1.onReady();
-          item2.onReady();
+          document.getElementById("item-1").onReady();
+          document.getElementById("item-2").onReady();
         });
 
         test("should set isReady", function() {
@@ -90,9 +98,20 @@
 
         test("should not increment the total number of ready playlists if the playlist has " +
           "already reported ready", function() {
-          playlist1.dispatchEvent(new CustomEvent("rise-playlist-ready", { "bubbles": true }));
+          document.getElementById("playlist-1").dispatchEvent(new CustomEvent("rise-playlist-ready", { "bubbles": true }));
 
           assert.equal(page._numPlaylists, 1);
+        });
+
+        test("should remove playlist from _allPlaylists if Display ID does not exist in the " +
+          "distribution", function() {
+          document.getElementById("item-5").onReady();
+
+          assert.equal(page._allPlaylists.length, 2);
+        });
+
+        test("should hide playlist if distribution does not match Display ID", function() {
+          assert.equal(document.getElementById("playlist-3").style.display, "none");
         });
       });
     });
