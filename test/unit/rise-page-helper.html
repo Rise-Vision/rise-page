@@ -107,24 +107,32 @@
       suite("_getPlaylistObj", function() {
         var playlist = null;
 
-        suiteSetup(function() {
-          playlist = page._getPlaylistObj(sync1);
-        });
-
         test("should set isReady property", function() {
+          playlist = page._getPlaylistObj(sync1);
+
           assert.isFalse(playlist.isReady);
         });
 
         test("should set id property", function() {
+          playlist = page._getPlaylistObj(sync1);
+
           assert.equal(playlist.id, sync1.id);
         });
 
         test("should set element property", function() {
+          playlist = page._getPlaylistObj(sync1);
+
           assert.equal(playlist.element, sync1);
         });
 
         test("should return null if parameter not passed", function() {
           assert.isNull(page._getPlaylistObj());
+        });
+
+        test("should return null if playlist does not have an id attribute", function() {
+          sync1.removeAttribute("id");
+
+          assert.isNull(page._getPlaylistObj(sync1));
         });
       });
 
