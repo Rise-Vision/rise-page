@@ -134,44 +134,14 @@
      * Determine whether or not to play a playlist based on its distribution and the Display ID.
      */
     _canPlay: function(playlist) {
-      var nodes = null,
-        node = null,
-        distribution = null,
-        found = false;
+      var distribution = document.querySelector("#" + playlist.id + " > rise-distribution");
 
-      // Find the rise-distribution element for the playlist.
-      if (playlist.element) {
-        nodes = playlist.element.childNodes;
-
-        for (var i = 0; i < nodes.length; i++) {
-          node = nodes[i];
-
-          if ((node.nodeType === 1) && (node.nodeName === "RISE-DISTRIBUTION")) {
-            found = true;
-
-            // Check if any of the distribution values match the Display ID.
-            try {
-              distribution = JSON.parse(node.getAttribute("distribution"));
-
-              for (var j = 0; j < distribution.length; j++) {
-                if (distribution[j].id === this.getDisplayId()) {
-                  return true;
-                }
-              }
-            }
-            catch (e) {
-              console.log(e);
-            }
-          }
-        }
+      if (distribution !== null) {
+        return distribution.canPlay(this.getDisplayId());
       }
-
       // Play the playlist even if there is no rise-distribution element.
-      if (!found) {
-        return true;
-      }
       else {
-        return false;
+        return true;
       }
     },
 
@@ -318,11 +288,17 @@
       var playlist = {};
 
       if (node) {
-        playlist.isReady = false;
-        playlist.id = node.id;
-        playlist.element = node;
+        if (node.id !== "") {
+          playlist.isReady = false;
+          playlist.id = node.id;
+          playlist.element = node;
 
-        return playlist;
+          return playlist;
+        }
+        else {
+          console.log("Playlist is missing an id attribute");
+          return null;
+        }
       }
       else {
         return null;
