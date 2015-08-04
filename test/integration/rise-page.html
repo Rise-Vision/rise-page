@@ -12,7 +12,7 @@
   <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
   <link rel="import" href="../../../rise-distribution/rise-distribution.html">
   <link rel="import" href="../../rise-page.html">
-  <link rel="import" href="../../demo-component.html">
+  <link rel="import" href="../../demo/demo-component.html">
 </head>
 <body>
   <rise-page id="page" display-id="dummy-id">
@@ -20,7 +20,7 @@
     <rise-playlist id="match">
 
       <rise-playlist-item>
-        <demo-component></demo-component>
+        <demo-component id="component-1"></demo-component>
       </rise-playlist-item>
 
       <rise-distribution distribution='[{"id":"dummy-id"}]'></rise-distribution>
@@ -30,7 +30,7 @@
     <rise-playlist id="no-match">
 
       <rise-playlist-item>
-        <demo-component></demo-component>
+        <demo-component id="component-2"></demo-component>
       </rise-playlist-item>
 
       <rise-distribution distribution='[{"id":"abc123"}]'></rise-distribution>
@@ -40,7 +40,7 @@
     <rise-playlist id="no-distribution">
 
       <rise-playlist-item>
-        <demo-component></demo-component>
+        <demo-component id="component-3"></demo-component>
       </rise-playlist-item>
 
     </rise-playlist>

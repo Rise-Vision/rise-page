@@ -3,6 +3,24 @@
 
 <script src="../underscore/underscore.js"></script>
 
+<!--
+`rise-page` is a Polymer Web Component that works with Rise Vision, the digital signage management application for Web Designers. `rise-page` controls the playback of its playlists. Playlist items that have the same duration and are located in the same position within a playlist as another playlist item within a separate playlist, will have their playback synchronized.
+
+In addition, `rise-page` surfaces methods for returning details about the Display.
+
+### Example Usage
+
+      <rise-page id="page" display-id="your-display-id">
+        <rise-playlist id="playlist-1">
+          <rise-playlist-item duration="3">
+            <demo-component id="apple" src="https://url.to.apple.png"></demo-component>
+          </rise-playlist-item>
+        </rise-playlist>
+      </rise-page>
+
+@demo demo/demo.html
+-->
+
 <dom-module id="rise-page">
   <template>
     <content id="playlists" select="rise-playlist"></content>
@@ -18,7 +36,10 @@
 
 <script>
   /* global Polymer, _ */
-  /*jshint newcap: false */
+  /* jshint newcap: false */
+</script>
+
+<script>
   Polymer({
     is: "rise-page",
 
@@ -65,7 +86,7 @@
     /*************************************** INITIALIZATION ***************************************/
 
     /**
-     * Construct the base URL for the Display request.
+     * Constructs the base URL for the Display request.
      */
     _computeUrl: function(displayId) {
       return "https://rvaserver2.appspot.com/_ah/api/content/v0/display?id=" + displayId;
@@ -97,7 +118,7 @@
     },
 
     /**
-     * Store additional details about a playlist.
+     * Stores additional details about a playlist.
      */
     _handleReady: function(e) {
       var playlist = _.findWhere(this._allPlaylists, { id: e.target.id });
@@ -131,7 +152,7 @@
     /**************************************** DISTRIBUTION ****************************************/
 
     /**
-     * Determine whether or not to play a playlist based on its distribution and the Display ID.
+     * Determines whether or not to play a playlist based on its distribution and the Display ID.
      */
     _canPlay: function(playlist) {
       var distribution = document.querySelector("#" + playlist.id + " > rise-distribution");
@@ -148,7 +169,7 @@
     /****************************************** PLAYBACK ******************************************/
 
     /**
-     * Start all playlists.
+     * Starts all playlists.
      */
     _start: function() {
       if (this._allPlaylists.length > 0) {
@@ -158,7 +179,8 @@
     },
 
     /**
-     * Start playing an individual playlist item for every playlist.
+     * Starts playing an individual playlist item for every playlist that is passed in as a
+     * parameter.
      */
     play: function(groupedPlaylists) {
       var index = 0,
@@ -184,7 +206,7 @@
     },
 
     /*
-     * Start a timer to interrupt the playback of playlists.
+     * Starts a timer to interrupt the playback of playlists.
      */
     _startTimer: function(duration, groupedPlaylists) {
       if (duration > 0) {
@@ -200,7 +222,7 @@
     },
 
     /**
-     * Pause the playlist item and play the subsequent one.
+     * Pauses the playlist item and plays the subsequent one.
      */
     _playNext: function(groupedPlaylists) {
       var index = 0,
@@ -229,14 +251,14 @@
     /**************************************** DISPLAY INFO ****************************************/
 
     /**
-     * Return the Display ID.
+     * Returns the Display ID.
      */
     getDisplayId: function() {
       return this.displayId;
     },
 
     /**
-     * Return the Company ID of the Display.
+     * Returns the Company ID of the Display.
      */
     getCompanyId: function() {
       if (this._displayInfo && this._displayInfo.companyId) {
@@ -248,7 +270,7 @@
     },
 
     /**
-     * Get the address of the Display.
+     * Returns the address of the Display.
      */
     getDisplayAddress: function() {
       if (this._displayInfo && this._displayInfo.displayAddress) {
@@ -260,7 +282,7 @@
     },
 
     /**
-     * Request information about a Display from the Content API.
+     * Requests information about a Display from the Content API.
      */
     _getDisplayInfo: function() {
       this.$.display.generateRequest();
@@ -282,7 +304,7 @@
     /************************************** HELPER FUNCTIONS **************************************/
 
     /**
-     * Return an object containing additional details about a playlist.
+     * Returns an object containing additional details about a playlist.
      */
     _getPlaylistObj: function(node) {
       var playlist = {};
@@ -306,7 +328,7 @@
     },
 
     /**
-     * Get the index of the next playlist item to play.
+     * Returns the index of the next playlist item to play.
      */
     _getNextIndex: function(currentIndex, playlists) {
       var exists = false;
@@ -334,7 +356,7 @@
     },
 
     /**
-     * Return an array of objects that are grouped by playlist item duration.
+     * Returns an array of objects that are grouped by playlist item duration.
      */
     _getGroupedPlaylists: function(index, playlists) {
       var groupedPlaylists = [],
@@ -376,7 +398,7 @@
     },
 
     /**
-     * Return only those playlists that have a playlist item at a given index.
+     * Returns only those playlists that have a playlist item at a given index.
      */
     _cleanPlaylists: function(index, playlists) {
       var newPlaylists = [];
