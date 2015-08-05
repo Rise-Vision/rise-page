@@ -28,7 +28,7 @@ Consider the following HTML snippet:
 In the above example, `apple` and `balloons` both play for 3 seconds. After that, `duck` and `moon` play for 5 seconds. In this way, both playlists are synchronized such that they start and end at the exact same time.
 
 ### Distribution
-The [distribution component](https://github.com/Rise-Vision/web-component-rise-distribution) can be used to control whether or not a Playlist shows on a Display. If any of the values in its `distribution` attribute match the value of the page component's `display-id` attribute, the playlist will play. Otherwise, the playlist will be hidden from view and will not play.
+The [distribution component](https://github.com/Rise-Vision/rise-distribution) can be used to control whether or not a Playlist shows on a Display. If any of the values in its `distribution` attribute match the value of the page component's `display-id` attribute, the playlist will play. Otherwise, the playlist will be hidden from view and will not play.
 
 In the following example, `playlist-1` will play since it has a distribution that matches that of the page component, while `playlist-2` will be skipped as none of its distributions match.
 ```
@@ -57,10 +57,10 @@ At this time Chrome is the only browser that this project and Rise Vision suppor
 ## Usage
 To begin, you will need to install the following components using Bower:
 ```
-bower install https://github.com/Rise-Vision/web-component-rise-page.git
-bower install https://github.com/Rise-Vision/web-component-rise-playlist.git
-bower install https://github.com/Rise-Vision/web-component-rise-playlist-item.git
-bower install https://github.com/Rise-Vision/web-component-rise-distribution.git
+bower install https://github.com/Rise-Vision/rise-page.git
+bower install https://github.com/Rise-Vision/rise-playlist.git
+bower install https://github.com/Rise-Vision/rise-playlist-item.git
+bower install https://github.com/Rise-Vision/rise-distribution.git
 ```
 
 The above repositories, as well as their dependencies, are installed in the `bower_components` folder.
@@ -71,10 +71,10 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
 <html>
   <head>
     <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-    <link rel="import" href="bower_components/web-component-rise-page/rise-page.html">
-    <link rel="import" href="bower_components/web-component-rise-playlist/rise-playlist.html">
-    <link rel="import" href="bower_components/web-component-rise-playlist-item/rise-playlist-item.html">
-    <link rel="import" href="bower_components/web-component-rise-distribution/rise-distribution.html">
+    <link rel="import" href="bower_components/rise-page/rise-page.html">
+    <link rel="import" href="bower_components/rise-playlist/rise-playlist.html">
+    <link rel="import" href="bower_components/rise-playlist-item/rise-playlist-item.html">
+    <link rel="import" href="bower_components/rise-distribution/rise-distribution.html">
   </head>
   <body>
     <!-- Replace "abc123" with a valid Display ID. -->
@@ -144,7 +144,7 @@ The following code will dispatch this event:
 this.dispatchEvent(new CustomEvent("rise-component-done", { "bubbles": true }));
 ```
 
-A sample child component that is built as a web component can be seen [here](https://github.com/Rise-Vision/web-component-rise-page/blob/master/demo-component.html). You will need to replace the `display-id` attribute of the `<rise-page>` element with a valid Display ID in order to return data.
+A sample child component that is built as a web component can be seen [here](https://github.com/Rise-Vision/rise-page/blob/master/demo-component.html). You will need to replace the `display-id` attribute of the `<rise-page>` element with a valid Display ID in order to return data.
 
 ## Built With
 - [Polymer](https://www.polymer-project.org/)
@@ -177,8 +177,8 @@ To make changes to the web component, you'll first need to install the dependenc
 
 The web component can now be installed by executing the following commands in Terminal:
 ```
-git clone https://github.com/Rise-Vision/web-component-rise-page.git
-cd web-component-rise-page
+git clone https://github.com/Rise-Vision/rise-page.git
+cd rise-page
 npm install
 bower install
 ```
