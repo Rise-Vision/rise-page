@@ -95,7 +95,7 @@
         });
 
         test("should play the first playlist item", function() {
-          page.play(page._groupedPlaylists);
+          page._play(page._groupedPlaylists);
 
           assert(firstPlaySpy.calledOnce);
         });

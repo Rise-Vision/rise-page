@@ -1,7 +1,9 @@
 # Rise Page Web Component
 
 ## Introduction
-`rise-page` is a web component that controls the playback of its child playlists. Playlist items that have the same duration and are located in the same position within a playlist as another playlist item within a separate playlist, will have their playback synchronized.
+`rise-page` is a Polymer Web Component that works with [Rise Vision](https://www.risevision.com/), the digital signage management application for [Web Designers](http://risevision.com/web-designers). It controls the playback of its nested playlists, and surfaces methods for returning details about the Display.
+
+Playlist items that have the same duration and are located in the same position within a playlist as another playlist item within a separate playlist, will have their playback synchronized.
 
 Consider the following HTML snippet:
 ```
@@ -50,8 +52,6 @@ In the following example, `playlist-1` will play since it has a distribution tha
 
 In addition, `rise-page` surfaces methods for returning details about the Display.
 
-`rise-page` works in conjunction with [Rise Vision](http://www.risevision.com), the [digital signage management application](http://rva.risevision.com/) that runs on [Google Cloud](https://cloud.google.com).
-
 At this time Chrome is the only browser that this project and Rise Vision supports.
 
 ## Usage
@@ -89,21 +89,6 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
   </body>
 </html>
 ```
-
-### Attributes
-| Attribute               | Type                              | Default |
-| ----------------------- | --------------------------------- | :-----: |
-| `display-id` (required) | `<string>` The ID of the Display. | `''`    |
-
-*Note:* You can find the Display ID on the Displays page of the [Rise Vision platform](http://rva.risevision.com/).
-
-### Methods
-| Method              | Description                                                         |
-| ------------------- | ------------------------------------------------------------------- |
-| `play`              | Start playlist playback.                                            |
-| `getDisplayId`      | Get the Display ID.                                                 |
-| `getCompanyId`      | Get the Company ID of the Display.                                  |
-| `getDisplayAddress` | Get the Display address.                                            |
 
 ### Building Custom Content
 When building custom content for use with `rise-page`, there are a few conventions that must be followed.
@@ -144,7 +129,10 @@ The following code will dispatch this event:
 this.dispatchEvent(new CustomEvent("rise-component-done", { "bubbles": true }));
 ```
 
-A sample child component that is built as a web component can be seen [here](https://github.com/Rise-Vision/rise-page/blob/master/demo-component.html). You will need to replace the `display-id` attribute of the `<rise-page>` element with a valid Display ID in order to return data.
+A sample child component that is built as a web component can be seen [here](https://github.com/Rise-Vision/rise-page/blob/master/demo/demo-component.html). You will need to replace the `display-id` attribute of the `<rise-page>` element with a valid Display ID in order to return data.
+
+## Documentation
+For further documentation on `rise-page` properties, methods, usage, and a comprehensive demo, please see [here](http://rise-vision.github.io/rise-page).
 
 ## Built With
 - [Polymer](https://www.polymer-project.org/)
@@ -188,7 +176,7 @@ To access the demo locally, run the `polyserve` command in Terminal.
 
 In your browser, navigate to:
 ```
-localhost:8080/components/rise-page/demo.html
+http://localhost:8080/components/rise-page/demo/
 ```
 
 ### Testing
@@ -205,7 +193,7 @@ Run the `polyserve` command in Terminal.
 
 In your browser, navigate to:
 ```
-localhost:8080/components/rise-page/test/
+http://localhost:8080/components/rise-page/test/
 ```
 
 ### Deployment
