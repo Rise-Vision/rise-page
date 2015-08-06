@@ -90,9 +90,6 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
 </html>
 ```
 
-## Documentation
-For further documentation on `rise-page` properties, methods, usage, and a comprehensive demo, please see [here](http://rise-vision.github.io/rise-page).
-
 ### Building Custom Content
 When building custom content for use with `rise-page`, there are a few conventions that must be followed.
 
@@ -132,7 +129,10 @@ The following code will dispatch this event:
 this.dispatchEvent(new CustomEvent("rise-component-done", { "bubbles": true }));
 ```
 
-A sample child component that is built as a web component can be seen [here](https://github.com/Rise-Vision/rise-page/blob/master/demo-component.html). You will need to replace the `display-id` attribute of the `<rise-page>` element with a valid Display ID in order to return data.
+A sample child component that is built as a web component can be seen [here](https://github.com/Rise-Vision/rise-page/blob/master/demo/demo-component.html). You will need to replace the `display-id` attribute of the `<rise-page>` element with a valid Display ID in order to return data.
+
+## Documentation
+For further documentation on `rise-page` properties, methods, usage, and a comprehensive demo, please see [here](http://rise-vision.github.io/rise-page).
 
 ## Built With
 - [Polymer](https://www.polymer-project.org/)
@@ -176,7 +176,7 @@ To access the demo locally, run the `polyserve` command in Terminal.
 
 In your browser, navigate to:
 ```
-http://localhost:8080/components/rise-page/
+http://localhost:8080/components/rise-page/demo/
 ```
 
 ### Testing
