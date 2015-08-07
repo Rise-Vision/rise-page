@@ -1,6 +1,6 @@
 {
   "name": "rise-page",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The Rise Page Web Component controls the playback of its child elements. It also provides the ability for other components on the page to query for information about the Display.",
   "scripts": {
     "test": "gulp test",
