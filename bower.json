@@ -1,6 +1,6 @@
 {
   "name": "rise-page",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "authors": [
     "Donna Peplinskie <donna.peplinskie@risevision.com>"
   ],
@@ -25,9 +25,9 @@
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
-    "rise-distribution": "https://github.com/Rise-Vision/web-component-rise-distribution.git",
-    "rise-playlist": "https://github.com/Rise-Vision/web-component-rise-playlist.git",
-    "rise-playlist-item": "https://github.com/Rise-Vision/web-component-rise-playlist-item.git#1.0.2",
+    "rise-distribution": "https://github.com/Rise-Vision/rise-distribution.git",
+    "rise-playlist": "https://github.com/Rise-Vision/rise-playlist.git#1.0.0",
+    "rise-playlist-item": "https://github.com/Rise-Vision/rise-playlist-item.git#1.0.2",
     "web-component-tester": "*"
   }
 }
