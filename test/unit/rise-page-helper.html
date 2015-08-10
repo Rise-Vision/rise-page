@@ -119,6 +119,12 @@
           assert.equal(playlist.id, sync1.id);
         });
 
+        test("should set index property", function() {
+          playlist = page._getPlaylistObj(sync1);
+
+          assert.equal(playlist.index, 0);
+        });
+
         test("should set element property", function() {
           playlist = page._getPlaylistObj(sync1);
 
@@ -136,61 +142,16 @@
         });
       });
 
-      suite("_getNextIndex", function() {
-        test("should return an incremented index if at least one playlist item exists at a specified index", function() {
-          assert.equal(page._getNextIndex(0, page._groupedPlaylists[1].playlists), 1);
+      suite("_getIndex", function() {
+        test("should increment the index", function() {
+          assert.equal(page._allPlaylists[0].index, 0, "index is 0");
+          assert.equal(page._getIndex(page._allPlaylists[0]), 1, "index is 1");
         });
 
-        test("should return 0 if no playlists have an item at the given index", function() {
-          assert.equal(page._getNextIndex(1, page._groupedPlaylists[1].playlists), 0);
-        });
-      });
+        test("should reset the index", function() {
+          page._allPlaylists[0].index = 1;
 
-      suite("_getGroupedPlaylists", function() {
-        var group;
-
-        suiteSetup(function() {
-          group = page._getGroupedPlaylists(0, page._allPlaylists);
-        });
-
-        test("should group all playlists by the duration of a playlist item at a specified index", function() {
-          assert.equal(group.length, 4);
-        });
-
-        test("should set the duration of a grouped playlist", function() {
-          assert.equal(group[1].duration, 5000);
-        });
-
-        test("should set the index of a grouped playlist", function() {
-          assert.equal(group[1].index, 0);
-        });
-
-        test("should set the playlists of a grouped playlist", function() {
-          assert.equal(group[1].playlists.length, 2);
-        });
-
-        test("should assign the correct playlist to the grouped playlist", function() {
-          assert.equal(group[1].playlists[0].id, "sync-1");
-        });
-
-        test("should return a grouped playlist with a property of '0' if a playlist " +
-          "item has no duration", function() {
-          assert.property(group[0].duration, "0");
-        });
-      });
-
-      suite("_cleanPlaylists", function() {
-        test("should return the same array of objects that are passed in as a parameter " +
-          "when each playlist has an item at a specified index", function() {
-          var playlists = page._cleanPlaylists(1, page._groupedPlaylists[1].playlists);
-
-          assert.deepEqual(playlists, page._groupedPlaylists[1].playlists);
-        });
-
-        test("should return an empty array when no playlist items exist at a specified index", function() {
-          var playlists = page._cleanPlaylists(2, page._groupedPlaylists[1].playlists);
-
-          assert.equal(playlists.length, 0);
+          assert.equal(page._getIndex(page._allPlaylists[0]), 0);
         });
       });
     });

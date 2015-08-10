@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-  <title>Page - Distribution</title>
+  <title>Page - Timeline</title>
 
   <script src="../../../webcomponentsjs/webcomponents-lite.min.js"></script>
   <script src="../../../web-component-tester/browser.js"></script>
 
   <link rel="import" href="../../../rise-playlist/rise-playlist.html">
   <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
-  <link rel="import" href="../../../rise-distribution/rise-distribution.html">
+  <link rel="import" href="../../../rise-timeline/rise-timeline.html">
   <link rel="import" href="../../rise-page.html">
   <link rel="import" href="../../demo/demo-component.html">
 </head>
@@ -23,7 +23,7 @@
         <demo-component></demo-component>
       </rise-playlist-item>
 
-      <rise-distribution distribution='[{"id":"dummy-id"}]'></rise-distribution>
+      <rise-timeline start-time="1:00 AM" end-time="11:59 PM"></rise-timeline>
 
     </rise-playlist>
 
@@ -33,11 +33,11 @@
         <demo-component></demo-component>
       </rise-playlist-item>
 
-      <rise-distribution distribution='[{"id":"abc123"}]'></rise-distribution>
+      <rise-timeline start-time="12:00 AM" end-time="1:00 AM"></rise-timeline>
 
     </rise-playlist>
 
-    <rise-playlist id="no-distribution">
+    <rise-playlist id="no-timeline">
 
       <rise-playlist-item>
         <demo-component></demo-component>
@@ -48,7 +48,7 @@
   </rise-page>
 
   <script>
-    suite("distribution", function() {
+    suite("timeline", function() {
       var page = document.getElementById("page");
 
       suiteSetup(function() {
@@ -59,25 +59,25 @@
         }
       });
 
-      suite("_checkDistribution", function() {
+      suite("_checkTimeline", function() {
         var playlist = null;
 
-        test("should return true if a playlist has a distribution matching the Display ID", function() {
+        test("should return true if a playlist is scheduled to play", function() {
           playlist = page._getPlaylistObj(document.getElementById("match"));
 
-          assert.isTrue(page._checkDistribution(playlist));
+          assert.isTrue(page._checkTimeline(playlist));
         });
 
-        test("should return false if a playlist does not have a distribution matching the Display ID", function() {
+        test("should return false if a playlist is not scheduled to play", function() {
           playlist = page._getPlaylistObj(document.getElementById("no-match"));
 
-          assert.isFalse(page._checkDistribution(playlist));
+          assert.isFalse(page._checkTimeline(playlist));
         });
 
-        test("should return true if a playlist does not have a distribution", function() {
-          playlist = page._getPlaylistObj(document.getElementById("no-distribution"));
+        test("should return true if a playlist does not have a timeline", function() {
+          playlist = page._getPlaylistObj(document.getElementById("no-timeline"));
 
-          assert.isTrue(page._checkDistribution(playlist));
+          assert.isTrue(page._checkTimeline(playlist));
         });
       });
     });

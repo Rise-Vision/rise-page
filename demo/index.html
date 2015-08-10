@@ -6,11 +6,12 @@
 
   <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
 
-  <link rel="import" href="demo-component.html">
   <link rel="import" href="../rise-page.html">
   <link rel="import" href="../../rise-playlist/rise-playlist.html">
   <link rel="import" href="../../rise-playlist-item/rise-playlist-item.html">
   <link rel="import" href="../../rise-distribution/rise-distribution.html">
+  <link rel="import" href="../../rise-timeline/rise-timeline.html">
+  <link rel="import" href="demo-component.html">
 
   <style>
     rise-playlist {
@@ -41,27 +42,32 @@
     have the same durations. -->
   <rise-page id="page" display-id="VGZUDDWYAZHY">
 
+    <!-- This playlist will play since its distribution matches the value of the display-id
+      attribute of rise-page. -->
     <rise-playlist id="playlist-1" intro="fade-in" outro="fade-out">
       <rise-playlist-item duration="3">
         <demo-component id="apple" src="https://goo.gl/XBnh0j"></demo-component>
       </rise-playlist-item>
 
       <rise-playlist-item duration="5">
-        <demo-component id="duck" src="https://goo.gl/fyZFTU"></demo-component>
+        <demo-component id="duck" class="fade-out" src="https://goo.gl/fyZFTU"></demo-component>
       </rise-playlist-item>
 
       <rise-distribution distribution='[{"id":"VGZUDDWYAZHY"}]'></rise-distribution>
     </rise-playlist>
 
+    <!-- This playlist will play on all Displays, but only between the hours of 8:00 AM and
+      5:00 PM local time. -->
     <rise-playlist id="playlist-2" intro="fade-in" outro="fade-out">
       <rise-playlist-item duration="3">
         <demo-component id="balloons" src="https://goo.gl/xyCpwu"></demo-component>
       </rise-playlist-item>
 
       <rise-playlist-item duration="5">
-        <demo-component id="moon" src="https://goo.gl/VyUVhj"></demo-component>
+        <demo-component id="moon" class="fade-out" src="https://goo.gl/VyUVhj"></demo-component>
       </rise-playlist-item>
 
+      <rise-timeline start-time="8:00 AM" end-time="5:00 PM"></rise-timeline>
     </rise-playlist>
 
   </rise-page>
