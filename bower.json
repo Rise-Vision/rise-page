@@ -25,9 +25,10 @@
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
-    "rise-distribution": "https://github.com/Rise-Vision/rise-distribution.git",
-    "rise-playlist": "https://github.com/Rise-Vision/rise-playlist.git#1.0.0",
+    "rise-distribution": "https://github.com/Rise-Vision/rise-distribution.git#1.0.0",
+    "rise-playlist": "https://github.com/Rise-Vision/rise-playlist.git#1.0.2",
     "rise-playlist-item": "https://github.com/Rise-Vision/rise-playlist-item.git#1.0.2",
+    "rise-timeline": "https://github.com/Rise-Vision/rise-timeline.git#1.0.0",
     "web-component-tester": "*"
   }
 }

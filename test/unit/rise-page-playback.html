@@ -10,61 +10,61 @@
 
   <link rel="import" href="../../../rise-playlist/rise-playlist.html">
   <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
+  <link rel="import" href="../../../rise-timeline/rise-timeline.html">
   <link rel="import" href="../../rise-page.html">
   <link rel="import" href="../../demo/demo-component.html">
 </head>
 <body>
   <rise-page id="page" display-id="dummy-id">
 
-    <rise-playlist id="playlist-1">
+    <rise-playlist id="playlist-timeline">
 
       <rise-playlist-item duration="5">
-        <demo-component id="item-1">
-          <nested-element></nested-element>
-        </demo-component>
+        <demo-component id="item-1"></demo-component>
       </rise-playlist-item>
 
       <rise-playlist-item duration="10">
         <demo-component id="item-2"></demo-component>
       </rise-playlist-item>
 
+      <rise-timeline id="timeline" start-time="12:00 AM" end-time="1:00 AM"></rise-timeline>
+
     </rise-playlist>
 
-    <rise-playlist id="playlist-2">
+    <rise-playlist id="playlist-no-duration">
 
-      <rise-playlist-item duration="5">
+      <rise-playlist-item>
         <demo-component id="item-3"></demo-component>
       </rise-playlist-item>
 
-      <rise-playlist-item duration="10">
+    </rise-playlist>
+
+    <rise-playlist id="playlist-duration">
+
+      <rise-playlist-item duration="5">
         <demo-component id="item-4"></demo-component>
       </rise-playlist-item>
 
     </rise-playlist>
 
-     <rise-playlist id="playlist-3">
+    <rise-playlist id="single-item-scheduled">
 
-      <rise-playlist-item duration="10">
+      <rise-playlist-item duration="3">
         <demo-component id="item-5"></demo-component>
+      </rise-playlist-item>
+
+      <rise-playlist-item duration="5">
+        <demo-component id="item-6"></demo-component>
+        <rise-timeline start-time="12:00 AM" end-time="1:00 AM"></rise-timeline>
       </rise-playlist-item>
 
     </rise-playlist>
 
-    Ignore this text.
   </rise-page>
 
   <script>
     suite("page", function() {
-      var firstPlaySpy = null,
-        secondPlaySpy = null,
-        pauseSpy = null,
-        page = document.querySelector("#page"),
-        playlist1 = document.querySelector("#playlist-1"),
-        playlist2 = document.querySelector("#playlist-2"),
-        item1 = document.querySelector("#item-1"),
-        item2 = document.querySelector("#item-2"),
-        item3 = document.querySelector("#item-3"),
-        item4 = document.querySelector("#item-4");
+      var timelinePlaylist;
 
       suiteSetup(function() {
         var items = document.getElementsByTagName("demo-component");
@@ -74,55 +74,135 @@
         }
       });
 
-      suite("_start", function() {
-        test("should create an array of playlists grouped by duration", function() {
-          page._start();
+      suite("_getPlayablePlaylists", function() {
+        suiteSetup(function() {
+          timelinePlaylist = page._allPlaylists[0]; // #playlist-timeline
+        });
 
-          assert.equal(page._groupedPlaylists.length, 2);
+        test("should return an empty array if a playlist is not ready", function() {
+          timelinePlaylist.isReady = false;
+
+          assert.equal(page._getPlayablePlaylists([timelinePlaylist]).length, 0);
+        });
+
+        test("should return an empty array if a playlist is not scheduled to play", function() {
+          timelinePlaylist.isReady = true;
+
+          assert.equal(page._getPlayablePlaylists([timelinePlaylist]).length, 0);
+        });
+
+        test("should return an array containing the playlist if it is both ready and scheduled to play", function() {
+          document.getElementById("playlist-timeline").removeChild(document.getElementById("timeline"));
+
+          assert.equal(page._getPlayablePlaylists([timelinePlaylist]).length, 1);
+        });
+      });
+
+      suite("_getSyncedPlaylists", function() {
+        var noDurationPlaylist,
+          durationPlaylist,
+          syncedPlaylist;
+
+        suiteSetup(function() {
+          timelinePlaylist = page._allPlaylists[0];   // #playlist-timeline
+          noDurationPlaylist = page._allPlaylists[1]; // #playlist-no-duration
+          durationPlaylist = page._allPlaylists[2];   // #playlist-duration
+        });
+
+        test("should return an object with 0 as its key when a playlist containing a playlist item " +
+          "that has no duration attribute is passed as a parameter", function() {
+          syncedPlaylist = page._getSyncedPlaylists([noDurationPlaylist]);
+
+          assert.isObject(syncedPlaylist, "result is an object");
+          assert.property(syncedPlaylist, "0", "result is grouped by 0");
+          assert.isArray(syncedPlaylist[0], "value of result is an array");
+          assert.equal(syncedPlaylist[0].length, 1, "value of result contains a single element");
+          assert.equal(syncedPlaylist[0][0].id, "playlist-no-duration", "playlist id is part of the result");
+        });
+
+        test("should return an object with a key that matches the duration of the currently playing " +
+          "items", function() {
+          syncedPlaylist = page._getSyncedPlaylists([timelinePlaylist, durationPlaylist]);
+
+          assert.isObject(syncedPlaylist, "result is an object");
+          assert.property(syncedPlaylist, "5000", "result is grouped by 5000");
+          assert.isArray(syncedPlaylist[5000], "value of result is an array");
+          assert.equal(syncedPlaylist[5000].length, 2, "value of result contains 2 elements");
+          assert.equal(syncedPlaylist[5000][0].id, "playlist-timeline", "result contains correct " +
+            "playlist ids");
+          assert.equal(syncedPlaylist[5000][1].id, "playlist-duration", "result contains correct " +
+            "playlist ids");
+        });
+
+        test("should return an empty object if an empty array is passed as a parameter", function() {
+          assert.deepEqual(page._getSyncedPlaylists([]), {});
+        });
+      });
+
+      suite("_itemCanPlay", function() {
+        test("should return true if the item is scheduled to play", function() {
+          assert.isTrue(page._itemCanPlay(page._allPlaylists[3]));
+        });
+
+        test("should return false if the item is not scheduled to play", function() {
+          page._allPlaylists[3].index = 1;
+
+          assert.isFalse(page._itemCanPlay(page._allPlaylists[3]));
         });
       });
 
       suite("play", function() {
-        var grouped = null;
+        var timelineSpy,
+          noDurationSpy,
+          durationSpy;
 
         suiteSetup(function() {
-          grouped = page._groupedPlaylists;
-          firstPlaySpy = sinon.spy(grouped[0].playlists[0].items[0], "play");
+          timelineSpy = sinon.spy(page._allPlaylists[0].items[0], "play");    // #playlist-timeline
+          noDurationSpy = sinon.spy(page._allPlaylists[1].items[0], "play");  // #playlist-no-duration
+          durationSpy = sinon.spy(page._allPlaylists[2].items[0], "play");    // #playlist-duration
         });
 
         suiteTeardown(function() {
-          grouped[0].playlists[0].items[0].play.restore();
+          page._allPlaylists[0].items[0].play.restore();
+          page._allPlaylists[1].items[0].play.restore();
+          page._allPlaylists[2].items[0].play.restore();
         });
 
-        test("should play the first playlist item", function() {
-          page._play(page._groupedPlaylists);
+        test("should play the first playlist item of every playlist", function() {
+          page._play(page._allPlaylists);
 
-          assert(firstPlaySpy.calledOnce);
+          assert(timelineSpy.calledOnce, "item in first playlist is playing");
+          assert(noDurationSpy.calledOnce, "item in second playlist is playing");
+          assert(durationSpy.calledOnce, "item in third playlist is playing");
         });
       });
 
       suite("_playNext", function() {
-        var grouped = null;
+        var pauseSpy,
+          playSpy;
 
         suiteSetup(function() {
-          grouped = page._groupedPlaylists;
-          pauseSpy = sinon.spy(grouped[0].playlists[0].items[0], "pause");
-          secondPlaySpy = sinon.spy(grouped[0].playlists[0].items[1], "play");
+          pauseSpy = sinon.spy(page._allPlaylists[0].items[0], "pause");
+          playSpy = sinon.spy(page._allPlaylists[0].items[1], "play");
 
-          page._playNext(page._groupedPlaylists[0]);
+          page._playNext([page._allPlaylists[0]]);  // #playlist-timeline
         });
 
         suiteTeardown(function() {
-          grouped[0].playlists[0].items[0].pause.restore();
-          grouped[0].playlists[0].items[1].play.restore();
+          page._allPlaylists[0].items[0].pause.restore();
+          page._allPlaylists[0].items[1].play.restore();
         });
 
-        test("should pause the currently playing playlist item", function() {
+        test("should pause the currently playing item", function() {
           assert(pauseSpy.calledOnce);
         });
 
-        test("should play the second playlist item", function() {
-          assert(secondPlaySpy.calledOnce);
+        test("should increment the playlist index", function() {
+          assert.equal(page._allPlaylists[0].index, 1);
+        });
+
+        test("should play the next playlist item", function() {
+          assert(playSpy.calledOnce);
         });
       });
     });

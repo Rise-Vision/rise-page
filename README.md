@@ -90,6 +90,10 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
 </html>
 ```
 
+If you would like to control content visibility by Display ID, please see the [`rise-distribution` component](https://github.com/Rise-Vision/rise-distribution).
+
+If you would like to control content visibility by timeline settings, please see the [`rise-timeline` component](https://github.com/Rise-Vision/rise-timeline).
+
 ### Building Custom Content
 When building custom content for use with `rise-page`, there are a few conventions that must be followed.
 

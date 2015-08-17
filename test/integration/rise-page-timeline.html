@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>Page - Timeline</title>
+
+  <script src="../../../webcomponentsjs/webcomponents-lite.min.js"></script>
+  <script src="../../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../../rise-playlist/rise-playlist.html">
+  <link rel="import" href="../../../rise-playlist-item/rise-playlist-item.html">
+  <link rel="import" href="../../../rise-timeline/rise-timeline.html">
+  <link rel="import" href="../../rise-page.html">
+  <link rel="import" href="../../demo/demo-component.html">
+</head>
+<body>
+  <rise-page id="page" display-id="dummy-id">
+
+    <rise-playlist id="match">
+
+      <rise-playlist-item>
+        <demo-component id="component-1"></demo-component>
+      </rise-playlist-item>
+
+      <rise-timeline start-time="1:00 AM" end-time="11:59 PM"></rise-timeline>
+
+    </rise-playlist>
+
+    <rise-playlist id="no-match">
+
+      <rise-playlist-item>
+        <demo-component id="component-2"></demo-component>
+      </rise-playlist-item>
+
+      <rise-timeline start-time="12:00 AM" end-time="1:00 AM"></rise-timeline>
+
+    </rise-playlist>
+
+    <rise-playlist id="no-timeline">
+
+      <rise-playlist-item>
+        <demo-component id="component-3"></demo-component>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+    <rise-playlist id="single-item-scheduled">
+
+      <rise-playlist-item>
+        <demo-component id="component-5"></demo-component>
+        <rise-timeline start-time="12:00 AM" end-time="1:00 AM"></rise-timeline>
+      </rise-playlist-item>
+
+      <rise-playlist-item>
+        <demo-component id="component-6"></demo-component>
+      </rise-playlist-item>
+
+    </rise-playlist>
+
+  </rise-page>
+
+  <script>
+    suite("rise-page", function() {
+      var page = document.getElementById("page"),
+        matchSpy, noMatchSpy, noTimelineSpy, singleItemScheduled;
+
+      suiteSetup(function() {
+        var items = document.getElementsByTagName("demo-component");
+
+        matchSpy = sinon.spy(page._allPlaylists[0].element, "play");
+        noMatchSpy = sinon.spy(page._allPlaylists[1].element, "play");
+        noTimelineSpy = sinon.spy(page._allPlaylists[2].element, "play");
+        singleItemScheduled = sinon.spy(page._allPlaylists[3].element, "play");
+
+        for (var i = 0; i < items.length; i++) {
+          items[i].onReady();
+        }
+      });
+
+      suiteTeardown(function() {
+        page._allPlaylists[0].element.play.restore();
+        page._allPlaylists[1].element.play.restore();
+        page._allPlaylists[2].element.play.restore();
+        page._allPlaylists[3].element.play.restore();
+      });
+
+      suite("playlist timeline", function() {
+        test("should play a playlist if it is scheduled to play", function() {
+          assert(matchSpy.calledWith(0));
+        });
+
+        test("should not play a playlist if it is not scheduled to play", function() {
+          assert(noMatchSpy.notCalled);
+        });
+
+        test("should play a playlist if it does not have a timeline", function() {
+          assert(noTimelineSpy.calledWith(0));
+        });
+      });
+
+      suite("playlist item timeline", function() {
+        test("should play first item in playlist that is scheduled to play", function() {
+          assert(singleItemScheduled.calledWith(1));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

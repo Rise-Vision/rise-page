@@ -97,6 +97,7 @@
       var playlists = Polymer.dom(this.$.playlists).getDistributedNodes(),
         playlist = null;
 
+      // Find all rise-playlist elements and add them to an array.
       for (var i = 0; i < playlists.length; i++) {
         if (playlists[i].nodeType === 1) {
           playlist = this._getPlaylistObj(playlists[i]);
@@ -127,7 +128,7 @@
       }
 
       // Check the distribution to see if the playlist should play on this Display.
-      if (this._canPlay(playlist)) {
+      if (this._checkDistribution(playlist)) {
         playlist.isReady = true;
 
         if (e.detail && e.detail.items) {
@@ -142,6 +143,7 @@
 
       this._numPlaylists++;
 
+      // Start playback once all playlists have reported ready.
       if (this._numPlaylists === this._totalPlaylists) {
         this._start();
       }
@@ -152,13 +154,30 @@
     /**
      * Determines whether or not to play a playlist based on its distribution and the Display ID.
      */
-    _canPlay: function(playlist) {
+    _checkDistribution: function(playlist) {
       var distribution = document.querySelector("#" + playlist.id + " > rise-distribution");
 
       if (distribution !== null) {
         return distribution.canPlay(this.getDisplayId());
       }
       // Play the playlist even if there is no rise-distribution element.
+      else {
+        return true;
+      }
+    },
+
+    /****************************************** TIMELINE ******************************************/
+
+    /**
+     * Checks whether or not to play a playlist based on its timeline.
+     */
+    _checkTimeline: function(playlist) {
+      var timeline = document.querySelector("#" + playlist.id + " > rise-timeline");
+
+      if (timeline !== null) {
+        return timeline.canPlay();
+      }
+      // Play the playlist if there is no rise-timeline element.
       else {
         return true;
       }
@@ -171,45 +190,46 @@
      */
     _start: function() {
       if (this._allPlaylists.length > 0) {
-        this._groupedPlaylists = this._getGroupedPlaylists(0, this._allPlaylists);
-        this._play(this._groupedPlaylists);
+        this._play(this._allPlaylists);
       }
     },
 
     /**
-     * Starts playing an individual playlist item for every playlist that is passed in as a
-     * parameter.
+     * Returns only those playlists that are currently scheduled to play.
      */
-    _play: function(groupedPlaylists) {
-      var index = 0,
-        duration = 0,
-        playlists = null,
-        playlist = null;
+    _getPlayablePlaylists: function(playlists) {
+      var newPlaylists = [];
 
-      // Play all playlist items at the specified index.
-      for (var i = 0; i < groupedPlaylists.length; i++) {
-        playlist = groupedPlaylists[i];
-        index = playlist.index;
-        duration = playlist.duration;
-        playlists = playlist.playlists;
-
-        for (var j = 0; j < playlists.length; j++) {
-          if (playlists[j].element && playlists[j].isReady) {
-            playlists[j].element.play(index);
-          }
+      for (var i = 0; i < playlists.length; i++) {
+        if (playlists[i].isReady && this._checkTimeline(playlists[i])) {
+          newPlaylists.push(playlists[i]);
         }
-
-        this._startTimer(duration, playlist);
       }
+
+      return newPlaylists;
+    },
+
+    /**
+     * Returns all playlists that should be played together.
+     */
+    _getSyncedPlaylists: function(playlists) {
+      var items = {};
+
+      // Get unique durations of all playlist items at the specified index.
+      items = _.groupBy(playlists, function(playlist) {
+        return playlist.items[playlist.index].duration;
+      });
+
+      return items;
     },
 
     /*
      * Starts a timer to interrupt the playback of playlists.
      */
-    _startTimer: function(duration, groupedPlaylists) {
+    _startTimer: function(playlists, duration) {
       if (duration > 0) {
         this.async(function() {
-          this._playNext(groupedPlaylists);
+          this._playNext(playlists);
         }, duration);
       }
       /* jshint ignore:start */
@@ -220,30 +240,69 @@
     },
 
     /**
-     * Pauses the playlist item and plays the subsequent one.
+     * Checks if a playlist item is scheduled to play.
      */
-    _playNext: function(groupedPlaylists) {
-      var index = 0,
-        nextIndex = 0,
-        playlists = null;
+    _itemCanPlay: function(playlist) {
+      return playlist.element && playlist.element.checkTimeline.call(playlist.element, playlist.index);
+    },
 
-      // Pause the playlist item at the specified index.
-      index = groupedPlaylists.index;
-      playlists = groupedPlaylists.playlists;
+    /**
+     * Starts playing an item for every playlist.
+     */
+    _play: function(playlists) {
+      var self = this,
+        scheduled = true,
+        syncedPlaylists = null,
+        startIndex;
 
-      for (var j = 0; j < playlists.length; j++) {
-        if (playlists[j].element) {
-          playlists[j].element.pause(index);
+      playlists = this._getPlayablePlaylists(playlists);
+      syncedPlaylists = this._getSyncedPlaylists(playlists);
+
+      _.each(syncedPlaylists, function(playlists, duration) {
+        for (var i = 0; i < playlists.length; i++) {
+          scheduled = true;
+          startIndex = playlists[i].index;
+
+          // Find the first item in the playlist that is scheduled to play.
+          while (!self._itemCanPlay(playlists[i])) {
+            playlists[i].index = self._getIndex(playlists[i]);
+
+            // There are no items in the playlist that can be played.
+            if (startIndex === playlists[i].index) {
+              scheduled = false;
+
+              break;
+            }
+          }
+
+          if (scheduled) {
+            playlists[i].element.play(playlists[i].index);
+          }
         }
+
+        self._startTimer(playlists, duration);
+      });
+    },
+
+    /**
+     * Pauses the currently playing item(s) and plays next item(s).
+     */
+    _playNext: function(playlists) {
+      var playlist = null;
+
+      // Pause current playing item(s).
+      for (var i = 0; i < playlists.length; i++) {
+        playlist = playlists[i];
+
+        if (playlist.element) {
+          playlist.element.pause(playlist.index);
+        }
+
+        playlist.index = this._getIndex(playlist);
       }
 
-      nextIndex = this._getNextIndex(index, playlists);
-
-      // Remove playlists that don't have an item at this index.
-      playlists = this._cleanPlaylists(nextIndex, playlists);
-
-      // Check the duration of the next playlist items.
-      this._play(this._getGroupedPlaylists(nextIndex, playlists));
+      // Play next item(s).
+      this._play(playlists);
     },
 
     /**************************************** DISPLAY INFO ****************************************/
@@ -311,6 +370,7 @@
         if (node.id !== "") {
           playlist.isReady = false;
           playlist.id = node.id;
+          playlist.index = 0;
           playlist.element = node;
 
           return playlist;
@@ -326,89 +386,17 @@
     },
 
     /**
-     * Returns the index of the next playlist item to play.
+     * Returns the index of the next item in each playlist.
      */
-    _getNextIndex: function(currentIndex, playlists) {
-      var exists = false;
+    _getIndex: function(playlist) {
+      var index = playlist.index + 1;
 
-      currentIndex++;
-
-      // Check all playlists to see if a playlist item exists at the given index.
-      for (var i = 0; i < playlists.length; i++) {
-        if (typeof playlists[i].items[currentIndex] !== "undefined") {
-          exists = true;
-
-          break;
-        }
+      // Reset index if an item does not exist at the current index.
+      if (index >= playlist.items.length) {
+        index = 0;
       }
 
-      // At least one playlist has an item at this index. Any others will be out of sync from
-      // this point forward.
-      if (exists) {
-        return currentIndex;
-      }
-      // No playlists have an item at this index; start from the beginning.
-      else {
-        return 0;
-      }
-    },
-
-    /**
-     * Returns an array of objects that are grouped by playlist item duration.
-     */
-    _getGroupedPlaylists: function(index, playlists) {
-      var groupedPlaylists = [],
-        groupedPlaylist = null;
-
-      // Group playlists by the duration of the playlist item at a particular index.
-      playlists = _.chain(playlists)
-        // Only include those playlists that have items with valid durations.
-        .filter(function(playlist) {
-          if (playlist.items && playlist.items[index] &&
-            (playlist.items[index].duration != null)) { // jshint ignore:line
-            return true;
-          }
-          else {
-            return false;
-          }
-        })
-        .groupBy(function(playlist) {
-          return playlist.items[index].duration;
-        })
-        .value();
-
-      // Create the object to add to the array.
-      _.each(playlists, function(playlist, duration) {
-        groupedPlaylist = {};
-
-        groupedPlaylist.playlists = [];
-        groupedPlaylist.index = index;
-        groupedPlaylist.duration = duration;
-
-        for (var i = 0; i < playlist.length; i++) {
-          groupedPlaylist.playlists.push(playlist[i]);
-        }
-
-        groupedPlaylists.push(groupedPlaylist);
-      });
-
-      return groupedPlaylists;
-    },
-
-    /**
-     * Returns only those playlists that have a playlist item at a given index.
-     */
-    _cleanPlaylists: function(index, playlists) {
-      var newPlaylists = [];
-
-      // Check all playlists to see if a playlist item exists at the given index.
-      for (var i = 0; i < playlists.length; i++) {
-        if (typeof playlists[i].items[index] !== "undefined") {
-          newPlaylists.push(playlists[i]);
-        }
-      }
-
-      return newPlaylists;
+      return index;
     }
   });
 </script>
